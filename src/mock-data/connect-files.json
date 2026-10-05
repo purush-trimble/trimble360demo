@@ -1,0 +1,5 @@
+[
+  { "id": "file-vcl-01", "accountId": "connect-demo", "name": "North_Ridge_Surface.vcl", "extension": "vcl", "size": "18.4 MB", "updatedAt": "Sep 28, 2026" },
+  { "id": "file-svd-01", "accountId": "connect-demo", "name": "North_Ridge_Alignment.svd", "extension": "svd", "size": "7.2 MB", "updatedAt": "Sep 27, 2026" },
+  { "id": "file-svl-01", "accountId": "connect-demo", "name": "North_Ridge_Design.svl", "extension": "svl", "size": "3.8 MB", "updatedAt": "Sep 26, 2026" }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "userId": "demo-user",
+    "pluginId": "connect",
+    "subscriptionAccountId": "connect-demo",
+    "plan": "Connect Pro",
+    "active": true
+  },
+  {
+    "userId": "demo-user",
+    "pluginId": "worksmanager",
+    "subscriptionAccountId": "wm-demo",
+    "plan": "WorksManager Advanced",
+    "active": true
+  }
+]

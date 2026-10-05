@@ -1,0 +1,25 @@
+[
+  {
+    "id": "design-1790692117314",
+    "projectId": "wm-project-01",
+    "name": "North Ridge imported design",
+    "sourceFileIds": [
+      "file-vcl-01",
+      "file-svd-01"
+    ],
+    "status": "Ready",
+    "createdAt": "Sep 29, 2026"
+  },
+  {
+    "id": "design-1790692148521",
+    "projectId": "wm-project-01",
+    "name": "North Ridge imported design",
+    "sourceFileIds": [
+      "file-vcl-01",
+      "file-svd-01",
+      "file-svl-01"
+    ],
+    "status": "Ready",
+    "createdAt": "Sep 29, 2026"
+  }
+]

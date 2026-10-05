@@ -1,0 +1,19 @@
+[
+  {
+    "id": "message-1790692106200",
+    "role": "user",
+    "text": "create design",
+    "createdAt": "2026-09-29T14:28:26.200Z"
+  },
+  {
+    "id": "message-1790692106200-assistant",
+    "role": "assistant",
+    "text": "Here’s an interactive view for that request.",
+    "uiAction": {
+      "type": "create_design",
+      "accountId": "wm-demo",
+      "suggestedName": "North Ridge imported design"
+    },
+    "createdAt": "2026-09-29T14:28:26.200Z"
+  }
+]
