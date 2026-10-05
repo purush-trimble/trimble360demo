@@ -1,14 +1,14 @@
-# Trimble Headless Hub (hackathon demo)
+# Trimble 360 (hackathon demo)
 
 Static **SolidJS + Vite** demo of an agent-driven Connect and WorksManager workspace. All data is mocked in the browser (no real Trimble APIs).
 
 ## Live demo
 
-After GitHub Pages is enabled for this repo:
+**https://purush-trimble.github.io/trimble360demo/**
 
-**https://&lt;your-org&gt;.github.io/trimble360/**
+(GitHub repo: [trimble360demo](https://github.com/purush-trimble/trimble360demo))
 
-Replace `<your-org>` with your GitHub Enterprise Cloud organization name.
+For **GitHub Enterprise Cloud**, use the same repo name so Pages serves at `https://<org>.github.io/trimble360demo/`.
 
 ## Try it
 
@@ -31,14 +31,14 @@ npm run dev
 
 ```bash
 # Windows PowerShell
-$env:BASE_PATH="/trimble360/"; npm run build; npm run preview
+$env:BASE_PATH="/trimble360demo/"; npm run build; npm run preview
 
 # macOS / Linux
-BASE_PATH=/trimble360/ npm run build && npm run preview
+BASE_PATH=/trimble360demo/ npm run build && npm run preview
 ```
 
 ## Deploy
 
-Pushes to `main` or `master` run [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml).
+Pushes to `main` run [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml).
 
 **One-time setup:** Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.

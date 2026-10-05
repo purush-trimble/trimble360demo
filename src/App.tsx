@@ -22,7 +22,7 @@ export default function App() {
   return (
     <div class="min-h-screen bg-slate-50 text-slate-900">
       <modus-wc-navbar>
-        <div slot="start" class="font-semibold">Trimble Headless Hub</div>
+        <div slot="start" class="font-semibold">Trimble 360</div>
         <div slot="end" class="flex items-center gap-3">
           <span class="text-sm">{currentUser.name}</span>
           <modus-wc-avatar initials={currentUser.initials} />
@@ -32,7 +32,7 @@ export default function App() {
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <p class="text-sm font-semibold text-blue-700">Connected product workspace</p>
-            <h2 class="text-3xl font-bold">Trimble Headless Hub</h2>
+            <h2 class="text-3xl font-bold">Trimble 360</h2>
             <p class="mt-1 text-slate-600">Compose Connect and WorksManager workflows through chat.</p>
           </div>
           <PluginLauncher
