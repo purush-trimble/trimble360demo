@@ -5,17 +5,16 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+# Pushes built `dist` to the `gh-pages` branch (static files only).
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,19 +23,19 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - name: Build for GitHub Pages
+        run: npm run build
         env:
-          BASE_PATH: /trimble360demo/
-      - uses: actions/upload-pages-artifact@v3
+          BASE_PATH: /${{ github.event.repository.name }}/
+      - name: Verify production bundle
+        shell: bash
+        run: |
+          test -f dist/index.html
+          grep -q "/${{ github.event.repository.name }}/assets/" dist/index.html
+          ! grep -q "/src/index.tsx" dist/index.html
+      - name: Publish dist to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          force_orphan: true

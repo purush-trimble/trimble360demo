@@ -1,5 +1,6 @@
 {
   "name": "trimble360demo",
+  "homepage": "https://purush-trimble.github.io/trimble360demo/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
