@@ -15,11 +15,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  enable-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      administration: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.repos.createPagesSite({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                build_type: "workflow",
+              });
+              core.info("Created GitHub Pages site (GitHub Actions source).");
+            } catch (error) {
+              if (error.status === 409) {
+                core.info("GitHub Pages site already exists.");
+                return;
+              }
+              throw error;
+            }
+
   build:
+    needs: enable-pages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
