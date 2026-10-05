@@ -1,12 +1,23 @@
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import { ChatWindow } from "@/components/ChatWindow";
 import { EntitlementsPanel } from "@/components/EntitlementsPanel";
+import { LoginPage } from "@/components/LoginPage";
+import { ModusButton } from "@/components/modus/ModusButton";
 import { PluginLauncher } from "@/components/PluginLauncher";
+import { isAuthenticated, signOut } from "@/lib/auth";
 import { currentUser } from "@/lib/currentUser";
 import { state, toggleEntitlement } from "@/lib/mockStore";
 import type { Entitlement, PluginId } from "@/lib/types";
 
 export default function App() {
+  return (
+    <Show when={isAuthenticated()} fallback={<LoginPage />}>
+      <Workspace />
+    </Show>
+  );
+}
+
+function Workspace() {
   const [mounted, setMounted] = createSignal<PluginId[]>([]);
   const entitlements = createMemo(() =>
     state.entitlements.filter((item) => item.userId === currentUser.id),
@@ -26,6 +37,9 @@ export default function App() {
         <div slot="end" class="flex items-center gap-3">
           <span class="text-sm">{currentUser.name}</span>
           <modus-wc-avatar initials={currentUser.initials} />
+          <ModusButton variant="outlined" onClick={signOut}>
+            Sign out
+          </ModusButton>
         </div>
       </modus-wc-navbar>
       <main class="mx-auto flex w-full max-w-7xl flex-col gap-5 p-5 lg:p-8">

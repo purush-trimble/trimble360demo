@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For } from "solid-js";
 import { ModusButton } from "@/components/modus/ModusButton";
 import { AgentUIRenderer } from "@/components/agent/AgentUIRenderer";
+import { currentUser } from "@/lib/currentUser";
 import { sendMessage, state } from "@/lib/mockStore";
 import type { PluginId } from "@/lib/types";
 
@@ -55,7 +56,7 @@ export function ChatWindow(props: { mountedPlugins: PluginId[]; onCreated: () =>
                   )}
                 </div>
               )}
-              {message.role === "user" && <modus-wc-avatar initials="AM" />}
+              {message.role === "user" && <modus-wc-avatar initials={currentUser.initials} />}
             </div>
           )}
         </For>
