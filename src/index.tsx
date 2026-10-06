@@ -3,9 +3,14 @@ import { render } from "solid-js/web";
 import "./index.css";
 import App from "./App.tsx";
 import { initModus } from "./modus-init";
-import { resetDemoStorage } from "./lib/mockStore";
+import { resetDemoStorage, state } from "./lib/mockStore";
+import { initTheme, setThemePreference } from "./lib/theme";
 
 initModus();
+initTheme();
+if (state.preferences.theme) {
+  setThemePreference(state.preferences.theme);
+}
 
 if (new URLSearchParams(window.location.search).has("reset")) {
   resetDemoStorage();

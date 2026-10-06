@@ -38,3 +38,31 @@ export interface Entitlement {
   plan: string;
   active: boolean;
 }
+
+export interface Conversation {
+  id: string;
+  title: string;
+  messageIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SavedWidget {
+  id: string;
+  name: string;
+  description: string;
+  prompt: string;
+  action: string;
+  productIds: PluginId[];
+  favorite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ThemePreference = "light" | "dark" | "system";
+export type DensityPreference = "comfortable" | "compact";
+
+export interface UserPreferences {
+  theme: ThemePreference;
+  density: DensityPreference;
+}

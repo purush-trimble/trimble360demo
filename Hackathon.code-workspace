@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../CCS-Projects/WorksManager/civil-cws-web"
+		},
+		{
+			"path": "../../CCS-Projects/WorksManager/civil-cws-profile-service"
+		}
+	],
+	"settings": {}
+}

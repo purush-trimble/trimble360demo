@@ -3,16 +3,510 @@
 @import "@trimble-oss/moduswebcomponents/modus-icons.css";
 @import "@trimble-oss/moduswebcomponents/modus-icons-2.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--modus-wc-color-base-page);
+  color: var(--modus-wc-color-base-content);
+  font-family: var(--modus-wc-font-family, system-ui), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-block: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.byop-app h1,
+.byop-app h2,
+.byop-app h3 {
+  line-height: 1.2;
+}
+
+.byop-app strong {
+  line-height: 1.3;
+}
+
+.byop-app .text-xs {
+  line-height: 1.35;
+}
+
+.byop-app {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--modus-wc-color-primary) 10%, transparent), transparent 34rem),
+    var(--modus-wc-color-base-page);
+}
+
+.byop-topbar {
+  display: flex;
+  min-height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem clamp(1rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--modus-wc-color-base-200);
+  background: var(--modus-wc-color-base-page);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent);
+}
+
+.byop-topbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.byop-topbar-actions > span {
+  white-space: nowrap;
+}
+
+.byop-icon-button,
+.byop-collapsed-action,
+.byop-composer-icon {
+  border: 0;
+  background: transparent;
+  color: var(--modus-wc-color-base-content);
+  cursor: pointer;
+}
+
+.byop-icon-button {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.65rem;
+  font-size: 1.25rem;
+}
+
+.byop-icon-button:hover,
+.byop-collapsed-action:hover,
+.byop-composer-icon:hover {
+  background: var(--modus-wc-color-base-200);
+}
+
+.byop-menu-toggle {
+  display: none;
+}
+
+.byop-chat-sidebar {
+  width: 18rem;
+  transition: width 180ms ease;
+}
+
+.byop-chat-sidebar.is-collapsed {
+  width: 4.25rem;
+}
+
+.byop-chat-sidebar.is-collapsed .byop-sidebar {
+  border-right: 1px solid var(--modus-wc-color-base-200);
+}
+
+.byop-sidebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.byop-sidebar-actions .byop-new-chat {
+  min-width: 0;
+  flex: 1;
+}
+
+.byop-collapsed-sidebar {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 0.5rem;
+  background: color-mix(in srgb, var(--modus-wc-color-base-100) 82%, var(--modus-wc-color-primary) 18%);
+}
+
+.byop-collapsed-action {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.75rem;
+  font-size: 1.4rem;
+}
+
+.byop-collapsed-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.6rem;
+  background: var(--modus-wc-color-primary);
+  color: var(--modus-wc-color-primary-content);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.byop-settings {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.byop-setting {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: color-mix(in srgb, var(--modus-wc-color-base-content) 72%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.byop-setting .byop-input {
+  min-height: 2rem;
+  padding-block: 0.35rem;
+}
+
+.byop-setting:first-child .byop-input {
+  width: 11.5rem;
+}
+
+.byop-topbar modus-wc-button {
+  white-space: nowrap;
+}
+
+.byop-topbar .byop-input {
+  min-width: 0;
+}
+
+.byop-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  letter-spacing: -0.01em;
+}
+
+.byop-brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: var(--modus-wc-color-primary);
+  color: var(--modus-wc-color-primary-content);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.byop-shell {
+  overflow: hidden;
+  background: color-mix(in srgb, var(--modus-wc-color-base-100) 45%, transparent);
+}
+
+.byop-sidebar {
+  background: color-mix(in srgb, var(--modus-wc-color-base-100) 82%, var(--modus-wc-color-primary) 18%);
+}
+
+.byop-sidebar > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.byop-sidebar .byop-input {
+  width: 100%;
+}
+
+.byop-sidebar-header {
+  background: color-mix(in srgb, var(--modus-wc-color-base-100) 92%, var(--modus-wc-color-primary) 8%);
+}
+
+.byop-new-chat {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 0.7rem;
+}
+
+.byop-plus-icon {
+  margin-right: 0.45rem;
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 0;
+}
+
+.byop-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.byop-search .byop-input {
+  min-height: 2.5rem;
+  padding-left: 2.35rem;
+  padding-right: 2.25rem;
+  border-radius: 0.75rem;
+  background: var(--modus-wc-color-base-page);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.byop-search .byop-input:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--modus-wc-color-primary) 16%, transparent);
+}
+
+.byop-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  z-index: 1;
+  color: var(--modus-wc-color-base-content);
+  font-size: 1.35rem;
+  line-height: 1;
+  opacity: 0.58;
+  pointer-events: none;
+  transform: rotate(-20deg);
+}
+
+.byop-search-clear {
+  position: absolute;
+  right: 0.55rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--modus-wc-color-base-200);
+  color: var(--modus-wc-color-base-content);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.byop-search-clear:hover {
+  background: var(--modus-wc-color-base-300);
+}
+
+.byop-sidebar .byop-brand-mark {
+  flex: 0 0 auto;
+}
+
+.byop-sidebar .modus-wc-button {
+  align-self: flex-start;
+}
+
+.byop-panel {
+  background: color-mix(in srgb, var(--modus-wc-color-base-100) 76%, var(--modus-wc-color-primary) 24%);
+}
+
+.byop-sidebar .modus-wc-button,
+.byop-panel .modus-wc-button {
+  width: 100%;
+}
+
+.byop-main-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.15rem 0.25rem;
+}
+
+.byop-main-header h2 {
+  max-width: 42rem;
+}
+
+.byop-main-header-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.9rem;
+  background: var(--modus-wc-color-primary);
+  color: var(--modus-wc-color-primary-content);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--modus-wc-color-primary) 25%, transparent);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.byop-chat {
+  min-height: 30rem;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--modus-wc-color-black) 10%, transparent);
+}
+
+.byop-composer-wrap {
+  background: var(--modus-wc-color-base-page);
+}
+
+.byop-gemini-composer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 1.8rem;
+  background: color-mix(in srgb, var(--modus-wc-color-base-100) 94%, var(--modus-wc-color-primary) 6%);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent);
+}
+
+.byop-composer-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--modus-wc-color-base-content);
+  font-size: 1rem;
+}
+
+.byop-composer-input::placeholder {
+  color: var(--modus-wc-color-base-content);
+  opacity: 0.7;
+}
+
+.byop-composer-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.byop-send-button {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--modus-wc-color-primary);
+  color: var(--modus-wc-color-primary-content);
+  cursor: pointer;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.byop-send-button:hover {
+  transform: translateY(-1px);
+}
+
+.byop-send-button:active {
+  transform: translateY(0);
+}
+
+.byop-send-button:focus-visible,
+.byop-search-clear:focus-visible,
+.byop-icon-button:focus-visible,
+.byop-collapsed-action:focus-visible,
+.byop-composer-icon:focus-visible {
+  outline: 2px solid var(--modus-wc-color-primary);
+  outline-offset: 2px;
+}
+
+.byop-chat-header {
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--modus-wc-color-primary) 8%, var(--modus-wc-color-base-page)),
+    var(--modus-wc-color-base-page)
+  );
+}
+
+.byop-message-card {
+  border: 1px solid var(--modus-wc-color-base-200);
+  border-radius: 1rem;
+  background: var(--modus-wc-color-base-100);
+  padding: 0.8rem 1rem;
+}
+
+.byop-empty-state {
+  border: 1px dashed var(--modus-wc-color-base-300);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 4%, var(--modus-wc-color-base-page));
+}
+
+.byop-input {
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 4px;
+  background: var(--modus-wc-color-base-page);
+  color: var(--modus-wc-color-base-content);
+  padding: 0.5rem 0.75rem;
+}
+
+.byop-input:focus {
+  outline: 2px solid var(--modus-wc-color-primary);
+  outline-offset: 1px;
+}
+
+.byop-link {
+  color: var(--modus-wc-color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.byop-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1279px) {
+  .byop-shell {
+    border-inline: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .byop-menu-toggle {
+    display: grid;
+  }
+
+  .byop-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .byop-topbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .byop-settings {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  .byop-shell {
+    position: relative;
+    height: calc(100vh - 122px);
+  }
+
+  .byop-chat-sidebar {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .byop-chat-sidebar.is-open {
+    box-shadow: 12px 0 24px color-mix(in srgb, var(--modus-wc-color-black) 18%, transparent);
+  }
 }
 
 .login-card {

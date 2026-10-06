@@ -31,9 +31,9 @@ export function LoginPage() {
         <div class="pointer-events-none absolute -bottom-16 -left-10 h-64 w-64 rounded-full bg-black/10" />
         <div class="relative">
           <p class="text-sm font-semibold tracking-wide text-white/80">Trimble Identity</p>
-          <h1 class="mt-6 max-w-lg text-4xl font-bold leading-tight">Trimble 360</h1>
+          <h1 class="mt-6 max-w-lg text-4xl font-bold leading-tight">Build Your Own Product</h1>
           <p class="mt-4 max-w-md text-lg text-white/85">
-            Sign in to compose Connect and WorksManager workflows through chat.
+            Sign in to compose licensed Trimble product workflows through chat.
           </p>
         </div>
         <ul class="relative space-y-3 text-sm text-white/90">
@@ -47,7 +47,7 @@ export function LoginPage() {
         <div class="w-full max-w-md">
           <div class="mb-8 lg:hidden">
             <p class="text-sm font-semibold text-blue-700">Trimble Identity</p>
-            <h1 class="mt-1 text-3xl font-bold text-slate-900">Trimble 360</h1>
+            <h1 class="mt-1 text-3xl font-bold text-slate-900">Build Your Own Product</h1>
           </div>
           <modus-wc-logo name="trimble" alt="Trimble" custom-class="login-trimble-logo" />
           <modus-wc-card bordered padding="comfortable" class="login-card mt-6 w-full">
