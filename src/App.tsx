@@ -6,7 +6,7 @@ import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { PluginsPage } from "@/components/plugins/PluginsPage";
 import { ModusButton } from "@/components/modus/ModusButton";
 import { isAuthenticated, signOut } from "@/lib/auth";
-import { isPluginConnected, listConnectablePluginIds, state } from "@/lib/mockStore";
+import { isPluginConnected, listConnectablePluginIds, sendMessage, state } from "@/lib/mockStore";
 
 type AppView = "workspace" | "plugins";
 
@@ -61,6 +61,7 @@ function Workspace() {
               connectedProducts={connectedPlugins()}
               showPluginsNav={showPluginsNav()}
               onOpenPlugins={() => setView("plugins")}
+              onRunWidgetPrompt={(prompt) => sendMessage(prompt, connectedPlugins())}
             />
           </div>
         </Show>

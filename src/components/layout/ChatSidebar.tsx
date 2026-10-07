@@ -1,6 +1,12 @@
 import { createSignal, For, Show } from "solid-js";
 
 import { ModusButton } from "@/components/modus/ModusButton";
+import {
+  SavedWidgetsPanel,
+  sortedWidgets,
+  WIDGET_SIDEBAR_PREVIEW_COUNT,
+} from "@/components/layout/SavedWidgetsPanel";
+import { WidgetsLibraryModal } from "@/components/layout/WidgetsLibraryModal";
 
 import {
 
@@ -92,9 +98,12 @@ export function ChatSidebar(props: {
 
   onOpenPlugins: () => void;
 
+  onRunWidgetPrompt: (prompt: string) => void;
+
 }) {
 
   const [query, setQuery] = createSignal("");
+  const [widgetsModalOpen, setWidgetsModalOpen] = createSignal(false);
 
   const [editingId, setEditingId] = createSignal<string | null>(null);
 
@@ -103,6 +112,8 @@ export function ChatSidebar(props: {
 
 
   const conversations = () => (query() ? searchConversations(query()) : listConversations());
+  const widgetCount = () => sortedWidgets().length;
+  const showWidgetViewMore = () => widgetCount() > WIDGET_SIDEBAR_PREVIEW_COUNT;
 
 
 
@@ -166,7 +177,7 @@ export function ChatSidebar(props: {
 
       >
 
-        <div class="byop-sidebar-header border-b border-[var(--modus-wc-color-base-200)] p-4">
+        <div class="byop-sidebar-header border-b border-[var(--modus-wc-color-base-200)] px-4 py-3.5">
 
           <div class="byop-sidebar-actions">
 
@@ -186,7 +197,7 @@ export function ChatSidebar(props: {
 
           </div>
 
-          <label class="byop-search mt-3">
+          <label class="byop-search mt-2.5">
 
             <span class="byop-search-icon" aria-hidden="true">⌕</span>
 
@@ -214,15 +225,44 @@ export function ChatSidebar(props: {
 
         </div>
 
-        <div class="min-h-0 flex-1 overflow-y-auto p-2">
+        <div class="byop-sidebar-body min-h-0 flex-1 flex flex-col overflow-hidden">
 
-          <div class="mb-2 flex items-center justify-between px-2">
+          <section class="byop-sidebar-section byop-sidebar-section--widgets" aria-labelledby="sidebar-widgets-heading">
+            <div class="byop-sidebar-section-head">
+              <h2 id="sidebar-widgets-heading" class="byop-sidebar-section-title">Saved widgets</h2>
+              <Show when={showWidgetViewMore()}>
+                <button type="button" class="byop-sidebar-text-action" onClick={() => setWidgetsModalOpen(true)}>
+                  View all
+                </button>
+              </Show>
+            </div>
+            <div class="byop-sidebar-section-content byop-sidebar-section-content--inset">
+              <SavedWidgetsPanel
+                compact
+                maxItems={WIDGET_SIDEBAR_PREVIEW_COUNT}
+                onRunPrompt={(prompt) => props.onRunWidgetPrompt(prompt)}
+              />
+            </div>
+          </section>
 
-            <p class="text-xs font-semibold opacity-60">Recent</p>
+          <section class="byop-sidebar-section byop-sidebar-section--chats flex min-h-0 flex-1 flex-col" aria-labelledby="sidebar-chats-heading">
+            <div class="byop-sidebar-section-head">
+              <h2 id="sidebar-chats-heading" class="byop-sidebar-section-title">Recent</h2>
+              <span class="byop-sidebar-badge" aria-label={`${conversations().length} conversations`}>
+                {conversations().length}
+              </span>
+            </div>
 
-            <span class="text-xs opacity-50">{conversations().length}</span>
+            <div class="byop-sidebar-list min-h-0 flex-1 overflow-y-auto">
 
-          </div>
+          <Show
+            when={conversations().length}
+            fallback={
+              <p class="byop-sidebar-empty-hint px-1">
+                {query() ? "No chats match your search." : "Start a new chat to see it here."}
+              </p>
+            }
+          >
 
           <For each={conversations()}>
 
@@ -230,7 +270,7 @@ export function ChatSidebar(props: {
 
               <div
 
-                class={`byop-conversation group mb-1 rounded-lg px-2 py-2 ${
+                class={`byop-conversation group mb-1 rounded-lg px-2.5 py-2 ${
 
                   state.activeConversationId === conv.id ? "is-active" : ""
 
@@ -320,9 +360,14 @@ export function ChatSidebar(props: {
 
           </For>
 
+          </Show>
+
+            </div>
+          </section>
+
         </div>
 
-        <div class="border-t border-[var(--modus-wc-color-base-200)] p-4">
+        <footer class="byop-sidebar-footer border-t border-[var(--modus-wc-color-base-200)]">
 
           <Show when={props.showPluginsNav}>
 
@@ -354,7 +399,13 @@ export function ChatSidebar(props: {
 
           </Show>
 
-        </div>
+        </footer>
+
+        <WidgetsLibraryModal
+          open={widgetsModalOpen()}
+          onClose={() => setWidgetsModalOpen(false)}
+          onRunPrompt={props.onRunWidgetPrompt}
+        />
 
       </Show>
 
