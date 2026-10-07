@@ -43,8 +43,8 @@ function PluginLicenseCard(props: {
   }
 
   return (
-    <modus-wc-card class="byop-plugin-card block">
-      <div class="p-5">
+    <modus-wc-card class="byop-plugin-card">
+      <div class="byop-plugin-card-body">
         <div class="flex items-start justify-between gap-3">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider opacity-60">{meta.vendor}</p>
@@ -82,27 +82,28 @@ function PluginLicenseCard(props: {
             />
             <span class="mt-1 block text-xs opacity-60">{meta.fchidHint}</span>
           </label>
-          <div class="mt-4 flex flex-wrap gap-2">
+        </Show>
+
+        <div class="byop-plugin-card-actions">
+          <Show when={status() === "disconnected" || status() === "error"}>
             <ModusButton variant="filled" disabled={isPending()} onClick={connect}>
               {isPending() ? "Connecting…" : "Connect plugin"}
             </ModusButton>
-          </div>
-        </Show>
+          </Show>
 
-        <Show when={status() === "pending"}>
-          <div class="byop-plugin-pending mt-4" aria-live="polite">
-            <span class="byop-spinner" aria-hidden="true" />
-            Verifying FCHID with Trimble identity…
-          </div>
-        </Show>
+          <Show when={status() === "pending"}>
+            <div class="byop-plugin-pending" aria-live="polite">
+              <span class="byop-spinner" aria-hidden="true" />
+              Verifying FCHID with Trimble identity…
+            </div>
+          </Show>
 
-        <Show when={status() === "connected"}>
-          <div class="mt-4 flex flex-wrap gap-2">
+          <Show when={status() === "connected"}>
             <ModusButton variant="outlined" onClick={() => disconnectPlugin(props.pluginId)}>
               Disconnect
             </ModusButton>
-          </div>
-        </Show>
+          </Show>
+        </div>
       </div>
     </modus-wc-card>
   );
@@ -117,18 +118,30 @@ export function PluginsPage(props: { onBack: () => void }) {
 
   return (
     <div class="byop-plugins-page byop-view-enter flex min-h-0 flex-1 flex-col gap-6 p-4 lg:p-7">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <ModusButton variant="text" onClick={props.onBack}>← Back to workspace</ModusButton>
-          <h2 class="mt-2 text-2xl font-bold tracking-tight">Plugins</h2>
-          <p class="mt-1 max-w-2xl text-sm opacity-70">
-            Connect licensed Trimble products with your federation ID (FCHID). Connected plugins can be mounted in chat workflows.
-          </p>
+      <header class="byop-plugins-header">
+        <button type="button" class="byop-plugins-back" onClick={props.onBack}>
+          <span aria-hidden="true">←</span>
+          Back to workspace
+        </button>
+        <div class="byop-main-header byop-plugins-header-main">
+          <span class="byop-main-header-mark byop-plugins-header-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+              <circle cx="12" cy="12" r="3.2" />
+            </svg>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold uppercase tracking-wider text-[var(--modus-wc-color-primary)]">Integrations</p>
+            <h2 class="text-2xl font-bold tracking-tight">Plugins</h2>
+            <p class="mt-1 max-w-2xl text-sm opacity-65">
+              Connect licensed Trimble products with your federation ID (FCHID). Connected plugins can be mounted in chat workflows.
+            </p>
+          </div>
+          <span class="byop-plugins-count shrink-0 self-start">{licensed().length} licensed</span>
         </div>
-        <span class="byop-plugins-count">{licensed().length} licensed</span>
-      </div>
+      </header>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="byop-plugins-grid">
         <For each={licensed()}>
           {(pluginId) => (
             <PluginLicenseCard
