@@ -35,7 +35,7 @@ export function ChatWindow(props: {
   }
 
   return (
-    <section class="byop-chat flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--modus-wc-color-base-200)] bg-[var(--modus-wc-color-base-page)] shadow-sm">
+    <section class="byop-chat flex min-h-0 flex-1 flex-col rounded-2xl border border-[var(--modus-wc-color-base-200)] bg-[var(--modus-wc-color-base-page)] shadow-sm">
       <div class="byop-chat-header border-b border-[var(--modus-wc-color-base-200)] px-6 py-5">
         <p class="text-xs font-bold uppercase tracking-wider text-[var(--modus-wc-color-primary)]">Agent workspace</p>
         <div class="mt-1 flex items-center justify-between gap-3">
@@ -83,7 +83,8 @@ export function ChatWindow(props: {
           )}
         </For>
       </div>
-      <div class="byop-composer-wrap border-t border-[var(--modus-wc-color-base-200)] p-4">
+      <div class="byop-composer-wrap border-t border-[var(--modus-wc-color-base-200)]">
+        <div class="byop-composer-glow-host">
         <div
           class="byop-gemini-composer"
           onClick={(event) => {
@@ -120,6 +121,7 @@ export function ChatWindow(props: {
               <path d="m4 4 16 8-16 8 3.5-8L4 4Zm3.5 8H20" />
             </svg>
           </button>
+        </div>
         </div>
         <p class="byop-composer-hint">Press Ctrl + Enter to send</p>
         <div class="mt-3 flex flex-wrap items-center gap-2" aria-label="Connected plugins">

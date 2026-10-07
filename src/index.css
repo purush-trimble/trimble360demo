@@ -852,50 +852,136 @@ select {
 }
 
 .byop-composer-wrap {
-  padding: 1rem 1.25rem 1.1rem;
-  background: var(--modus-wc-color-base-page);
+  position: relative;
+  padding: 1.1rem 1.35rem 1.5rem;
+  background: linear-gradient(
+    180deg,
+    var(--modus-wc-color-base-page) 0%,
+    color-mix(in srgb, var(--modus-wc-color-primary) 4%, var(--modus-wc-color-base-page)) 100%
+  );
+}
+
+.byop-composer-glow-host {
+  --byop-glow-a: color-mix(in srgb, var(--modus-wc-color-primary) 55%, #2563eb);
+  --byop-glow-b: color-mix(in srgb, var(--modus-wc-color-primary) 35%, #06b6d4);
+  --byop-glow-c: color-mix(in srgb, var(--modus-wc-color-primary) 25%, #6366f1);
+  position: relative;
+  isolation: isolate;
+}
+
+.byop-composer-glow-host::before,
+.byop-composer-glow-host::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 2.5rem;
+}
+
+.byop-composer-glow-host::before {
+  inset: 18% -3% -1.1rem;
+  background:
+    radial-gradient(ellipse 88% 78% at 50% 100%, color-mix(in srgb, var(--byop-glow-a) 72%, transparent), transparent 62%),
+    radial-gradient(ellipse 42% 55% at 12% 92%, color-mix(in srgb, var(--byop-glow-c) 42%, transparent), transparent 68%),
+    radial-gradient(ellipse 42% 55% at 88% 92%, color-mix(in srgb, var(--byop-glow-b) 42%, transparent), transparent 68%);
+  filter: blur(26px);
+  opacity: 0.88;
+  transform: scale(0.99);
+  animation: byop-composer-glow-breathe 5.5s ease-in-out infinite;
+}
+
+.byop-composer-glow-host::after {
+  inset: 42% 10% -0.45rem;
+  background: radial-gradient(
+    ellipse 100% 95% at 50% 100%,
+    color-mix(in srgb, var(--byop-glow-a) 85%, transparent),
+    transparent 58%
+  );
+  filter: blur(14px);
+  opacity: 0.75;
+}
+
+.byop-composer-glow-host:focus-within::before {
+  opacity: 1;
+  filter: blur(30px);
+  transform: scale(1.01);
+}
+
+.byop-composer-glow-host:focus-within::after {
+  opacity: 0.95;
+  filter: blur(16px);
 }
 
 .byop-gemini-composer {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 0.65rem;
   min-height: 3.75rem;
   padding: 0.4rem 0.5rem 0.4rem 0.75rem;
-  border: 1px solid var(--modus-wc-color-base-300);
+  border: 1px solid transparent;
   border-radius: 2rem;
-  background: var(--modus-wc-color-base-100);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--modus-wc-color-base-100) 96%, white),
+      color-mix(in srgb, var(--modus-wc-color-base-page) 22%, var(--modus-wc-color-base-100))
+    )
+    padding-box,
+    linear-gradient(
+      118deg,
+      color-mix(in srgb, var(--byop-glow-b) 55%, var(--modus-wc-color-base-300)),
+      color-mix(in srgb, var(--byop-glow-a) 62%, var(--modus-wc-color-base-300)),
+      color-mix(in srgb, var(--byop-glow-c) 48%, var(--modus-wc-color-base-300))
+    )
+    border-box;
   box-shadow:
-    0 2px 5px color-mix(in srgb, var(--modus-wc-color-black) 5%, transparent),
-    0 10px 24px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent);
+    inset 0 1px 0 color-mix(in srgb, white 72%, transparent),
+    0 1px 2px color-mix(in srgb, var(--modus-wc-color-black) 6%, transparent),
+    0 8px 20px color-mix(in srgb, var(--modus-wc-color-black) 7%, transparent),
+    0 14px 36px color-mix(in srgb, var(--byop-glow-a) 22%, transparent);
   transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    background 160ms ease;
+    box-shadow 180ms ease,
+    transform 180ms ease;
   cursor: text;
 }
 
 .byop-gemini-composer:hover {
-  border-color: color-mix(in srgb, var(--modus-wc-color-base-content) 28%, var(--modus-wc-color-base-300));
   box-shadow:
-    0 3px 7px color-mix(in srgb, var(--modus-wc-color-black) 7%, transparent),
-    0 12px 28px color-mix(in srgb, var(--modus-wc-color-black) 11%, transparent);
+    inset 0 1px 0 color-mix(in srgb, white 78%, transparent),
+    0 2px 4px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent),
+    0 10px 24px color-mix(in srgb, var(--modus-wc-color-black) 9%, transparent),
+    0 18px 44px color-mix(in srgb, var(--byop-glow-a) 28%, transparent);
 }
 
 .byop-gemini-composer:focus-within {
-  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 68%, var(--modus-wc-color-base-300));
   box-shadow:
-    0 3px 7px color-mix(in srgb, var(--modus-wc-color-black) 7%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--modus-wc-color-primary) 15%, transparent);
+    inset 0 1px 0 color-mix(in srgb, white 82%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--byop-glow-a) 16%, transparent),
+    0 4px 12px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent),
+    0 20px 48px color-mix(in srgb, var(--byop-glow-a) 34%, transparent),
+    0 8px 28px color-mix(in srgb, var(--byop-glow-b) 22%, transparent);
 }
 
-.byop-gemini-composer:focus-within:hover {
-  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 72%, var(--modus-wc-color-base-300));
+@keyframes byop-composer-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 0.96;
+    transform: scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .byop-gemini-composer {
+  .byop-gemini-composer,
+  .byop-composer-glow-host::before {
     transition: none;
+    animation: none !important;
   }
 }
 
