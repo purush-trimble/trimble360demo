@@ -7,10 +7,12 @@ import worksmanagerProjectsSeed from "@/mock-data/worksmanager-projects.json";
 import { currentUser } from "@/lib/currentUser";
 import { resolveIntent } from "@/lib/agent/intentRouter";
 import type { ChatMessage } from "@/lib/agent/types";
+import { validateFchid } from "@/lib/pluginCatalog";
 import type {
   Conversation,
   Design,
   Entitlement,
+  PluginConnection,
   PluginId,
   SavedWidget,
   UserPreferences,
@@ -27,9 +29,36 @@ type Persisted = {
   activeConversationId: string;
   widgets: SavedWidget[];
   preferences: UserPreferences;
+  pluginConnections: PluginConnection[];
 };
 
-const defaultPreferences: UserPreferences = { theme: "system", density: "comfortable" };
+const defaultPreferences: UserPreferences = { theme: "system", density: "comfortable", pluginsMenuVisible: true };
+
+function defaultPluginConnections(): PluginConnection[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      pluginId: "connect",
+      status: "connected",
+      fchid: "FCHID-DEMO-88442211",
+      connectedAt: now,
+      updatedAt: now,
+    },
+    {
+      pluginId: "worksmanager",
+      status: "disconnected",
+      updatedAt: now,
+    },
+  ];
+}
+
+function normalizePreferences(prefs: Partial<UserPreferences> | undefined): UserPreferences {
+  return {
+    theme: prefs?.theme ?? defaultPreferences.theme,
+    density: prefs?.density ?? defaultPreferences.density,
+    pluginsMenuVisible: prefs?.pluginsMenuVisible ?? defaultPreferences.pluginsMenuVisible,
+  };
+}
 
 function buildInitialConversation(messages: ChatMessage[]): { conversations: Conversation[]; activeId: string } {
   const id = "conversation-demo";
@@ -57,20 +86,30 @@ function migrateFromV1(): Persisted | null {
       activeConversationId: activeId,
       widgets: [],
       preferences: defaultPreferences,
+      pluginConnections: defaultPluginConnections(),
     };
   } catch {
     return null;
   }
 }
 
+function normalizePersisted(raw: Persisted): Persisted {
+  return {
+    ...raw,
+    preferences: normalizePreferences(raw.preferences),
+    pluginConnections: raw.pluginConnections?.length ? raw.pluginConnections : defaultPluginConnections(),
+  };
+}
+
 function loadPersisted(): Persisted | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as Persisted;
+    if (raw) return normalizePersisted(JSON.parse(raw) as Persisted);
   } catch {
     // ignore
   }
-  return migrateFromV1();
+  const migrated = migrateFromV1();
+  return migrated ? normalizePersisted(migrated) : null;
 }
 
 function savePersisted(data: Persisted) {
@@ -92,7 +131,8 @@ const [state, setState] = createStore({
   conversations: initialConv,
   activeConversationId: persisted?.activeConversationId ?? initialConv[0]?.id ?? "",
   widgets: (persisted?.widgets ?? []) as SavedWidget[],
-  preferences: persisted?.preferences ?? defaultPreferences,
+  preferences: normalizePreferences(persisted?.preferences),
+  pluginConnections: persisted?.pluginConnections ?? defaultPluginConnections(),
 });
 
 function snapshot(): Persisted {
@@ -104,6 +144,7 @@ function snapshot(): Persisted {
     activeConversationId: state.activeConversationId,
     widgets: state.widgets,
     preferences: state.preferences,
+    pluginConnections: state.pluginConnections,
   };
 }
 
@@ -126,7 +167,85 @@ export function resetDemoStorage() {
     activeConversationId: activeId,
     widgets: [],
     preferences: defaultPreferences,
+    pluginConnections: defaultPluginConnections(),
   });
+}
+
+export function getPluginConnections() {
+  return state.pluginConnections;
+}
+
+export function getPluginConnection(pluginId: PluginId) {
+  return state.pluginConnections.find((c) => c.pluginId === pluginId);
+}
+
+export function isPluginConnected(pluginId: PluginId) {
+  return getPluginConnection(pluginId)?.status === "connected";
+}
+
+export function listConnectablePluginIds(): PluginId[] {
+  return getEntitlements()
+    .filter((e) => e.active)
+    .map((e) => e.pluginId);
+}
+
+export function beginPluginConnect(pluginId: PluginId, fchid: string) {
+  const check = validateFchid(fchid);
+  const now = new Date().toISOString();
+  const index = state.pluginConnections.findIndex((c) => c.pluginId === pluginId);
+  if (!check.ok) {
+    const errorRow: PluginConnection = {
+      pluginId,
+      status: "error",
+      fchid: fchid.trim(),
+      lastError: check.message,
+      updatedAt: now,
+    };
+    if (index >= 0) setState("pluginConnections", index, errorRow);
+    else setState("pluginConnections", (rows) => [...rows, errorRow]);
+    persist();
+    return { ok: false as const, message: check.message };
+  }
+  const pending: PluginConnection = {
+    pluginId,
+    status: "pending",
+    fchid: check.value,
+    lastError: undefined,
+    updatedAt: now,
+  };
+  if (index >= 0) setState("pluginConnections", index, pending);
+  else setState("pluginConnections", (rows) => [...rows, pending]);
+  persist();
+  return { ok: true as const, pluginId };
+}
+
+export function completePluginConnect(pluginId: PluginId) {
+  const index = state.pluginConnections.findIndex((c) => c.pluginId === pluginId);
+  if (index < 0) return;
+  const row = state.pluginConnections[index];
+  if (row.status !== "pending") return;
+  const now = new Date().toISOString();
+  setState("pluginConnections", index, {
+    ...row,
+    status: "connected",
+    connectedAt: now,
+    updatedAt: now,
+    lastError: undefined,
+  });
+  persist();
+}
+
+export function disconnectPlugin(pluginId: PluginId) {
+  const index = state.pluginConnections.findIndex((c) => c.pluginId === pluginId);
+  const now = new Date().toISOString();
+  const disconnected: PluginConnection = {
+    pluginId,
+    status: "disconnected",
+    updatedAt: now,
+  };
+  if (index >= 0) setState("pluginConnections", index, disconnected);
+  else setState("pluginConnections", (rows) => [...rows, disconnected]);
+  persist();
 }
 
 export function getEntitlements() {

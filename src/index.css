@@ -91,6 +91,16 @@ select {
   font-size: 1.25rem;
 }
 
+.byop-icon-button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .byop-icon-button:hover,
 .byop-collapsed-action:hover,
 .byop-composer-icon:hover {
@@ -103,11 +113,15 @@ select {
 
 .byop-chat-sidebar {
   width: 18rem;
+  flex: 0 0 18rem;
+  min-width: 0;
+  overflow: hidden;
   transition: width 180ms ease;
 }
 
 .byop-chat-sidebar.is-collapsed {
   width: 4.25rem;
+  flex-basis: 4.25rem;
 }
 
 .byop-chat-sidebar.is-collapsed .byop-sidebar {
@@ -133,7 +147,8 @@ select {
   align-items: center;
   gap: 0.75rem;
   padding: 0.9rem 0.5rem;
-  background: color-mix(in srgb, var(--modus-wc-color-base-100) 82%, var(--modus-wc-color-primary) 18%);
+  background: var(--modus-wc-color-base-page);
+  box-shadow: inset -1px 0 var(--modus-wc-color-base-200);
 }
 
 .byop-collapsed-action {
@@ -215,7 +230,14 @@ select {
 }
 
 .byop-sidebar {
-  background: color-mix(in srgb, var(--modus-wc-color-base-100) 82%, var(--modus-wc-color-primary) 18%);
+  width: 100%;
+  min-width: 0;
+  background: var(--modus-wc-color-base-page);
+}
+
+.byop-shell > main {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .byop-sidebar > div:first-child {
@@ -228,8 +250,25 @@ select {
   width: 100%;
 }
 
+.byop-conversation {
+  border: 1px solid transparent;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.byop-conversation:hover {
+  background: var(--modus-wc-color-base-100);
+  border-color: var(--modus-wc-color-base-200);
+  transform: translateX(1px);
+}
+
+.byop-conversation.is-active {
+  background: var(--modus-wc-color-base-100);
+  border-color: var(--modus-wc-color-base-300);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--modus-wc-color-black) 6%, transparent);
+}
+
 .byop-sidebar-header {
-  background: color-mix(in srgb, var(--modus-wc-color-base-100) 92%, var(--modus-wc-color-primary) 8%);
+  background: var(--modus-wc-color-base-100);
 }
 
 .byop-new-chat {
@@ -302,7 +341,27 @@ select {
 }
 
 .byop-panel {
-  background: color-mix(in srgb, var(--modus-wc-color-base-100) 76%, var(--modus-wc-color-primary) 24%);
+  background: var(--modus-wc-color-base-page);
+  box-shadow: inset 1px 0 var(--modus-wc-color-base-200);
+}
+
+.byop-sidebar .overflow-y-auto {
+  scrollbar-color: var(--modus-wc-color-base-300) transparent;
+}
+
+.byop-panel .overflow-y-auto {
+  scrollbar-color: var(--modus-wc-color-base-300) transparent;
+}
+
+.byop-panel modus-wc-card {
+  display: block;
+  border-radius: 0.85rem;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.byop-panel modus-wc-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--modus-wc-color-black) 9%, transparent);
 }
 
 .byop-sidebar .modus-wc-button,
@@ -340,52 +399,122 @@ select {
   box-shadow: 0 12px 30px color-mix(in srgb, var(--modus-wc-color-black) 10%, transparent);
 }
 
+.byop-plugin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 999px;
+  background: var(--modus-wc-color-base-100);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.byop-plugin-chip-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #1a7f37;
+}
+
 .byop-composer-wrap {
+  padding: 1rem 1.25rem 1.1rem;
   background: var(--modus-wc-color-base-page);
 }
 
 .byop-gemini-composer {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 3.5rem;
-  padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+  gap: 0.65rem;
+  min-height: 3.75rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.75rem;
   border: 1px solid var(--modus-wc-color-base-300);
-  border-radius: 1.8rem;
-  background: color-mix(in srgb, var(--modus-wc-color-base-100) 94%, var(--modus-wc-color-primary) 6%);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent);
+  border-radius: 2rem;
+  background: var(--modus-wc-color-base-100);
+  box-shadow:
+    0 2px 5px color-mix(in srgb, var(--modus-wc-color-black) 5%, transparent),
+    0 10px 24px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+  cursor: text;
+}
+
+.byop-gemini-composer:hover {
+  border-color: color-mix(in srgb, var(--modus-wc-color-base-content) 28%, var(--modus-wc-color-base-300));
+  box-shadow:
+    0 3px 7px color-mix(in srgb, var(--modus-wc-color-black) 7%, transparent),
+    0 12px 28px color-mix(in srgb, var(--modus-wc-color-black) 11%, transparent);
+}
+
+.byop-gemini-composer:focus-within {
+  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 68%, var(--modus-wc-color-base-300));
+  box-shadow:
+    0 3px 7px color-mix(in srgb, var(--modus-wc-color-black) 7%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--modus-wc-color-primary) 15%, transparent);
+}
+
+.byop-gemini-composer:focus-within:hover {
+  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 72%, var(--modus-wc-color-base-300));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byop-gemini-composer {
+    transition: none;
+  }
 }
 
 .byop-composer-input {
   min-width: 0;
   flex: 1;
-  border: 0;
-  outline: 0;
+  appearance: none;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
   background: transparent;
   color: var(--modus-wc-color-base-content);
   font-size: 1rem;
+  padding: 0;
 }
 
 .byop-composer-input::placeholder {
   color: var(--modus-wc-color-base-content);
-  opacity: 0.7;
+  opacity: 0.58;
 }
 
 .byop-composer-icon {
   display: grid;
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   flex: 0 0 auto;
   place-items: center;
   border-radius: 999px;
-  font-size: 1.5rem;
-  line-height: 1;
+  color: color-mix(in srgb, var(--modus-wc-color-base-content) 68%, transparent);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.byop-composer-icon svg,
+.byop-send-button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.byop-composer-icon:hover {
+  color: var(--modus-wc-color-base-content);
 }
 
 .byop-send-button {
   display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.8rem;
+  height: 2.8rem;
   flex: 0 0 auto;
   place-items: center;
   border: 0;
@@ -393,18 +522,29 @@ select {
   background: var(--modus-wc-color-primary);
   color: var(--modus-wc-color-primary-content);
   cursor: pointer;
-  font-size: 1.45rem;
-  font-weight: 700;
-  line-height: 1;
-  transition: transform 120ms ease, opacity 120ms ease;
+  transition: transform 120ms ease, background 120ms ease, opacity 120ms ease;
 }
 
 .byop-send-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.03);
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 88%, var(--modus-wc-color-black));
 }
 
 .byop-send-button:active {
-  transform: translateY(0);
+  transform: scale(0.97);
+}
+
+.byop-send-button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.byop-composer-hint {
+  margin-top: 0.55rem;
+  color: color-mix(in srgb, var(--modus-wc-color-base-content) 58%, transparent);
+  font-size: 0.72rem;
+  text-align: center;
 }
 
 .byop-send-button:focus-visible,
@@ -492,20 +632,18 @@ select {
 
 @media (max-width: 767px) {
   .byop-shell {
-    position: relative;
     height: calc(100vh - 122px);
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .byop-chat-sidebar {
-    position: absolute;
-    z-index: 5;
-    top: 0;
-    bottom: 0;
-    left: 0;
+    position: static;
+    flex: 0 0 18rem;
   }
 
   .byop-chat-sidebar.is-open {
-    box-shadow: 12px 0 24px color-mix(in srgb, var(--modus-wc-color-black) 18%, transparent);
+    box-shadow: none;
   }
 }
 
@@ -524,4 +662,358 @@ select {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.byop-icon-button--sm {
+  width: 1.85rem;
+  height: 1.85rem;
+  font-size: 1rem;
+}
+
+.byop-icon-button--sm svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.byop-conversation-actions .byop-icon-button--rename:hover {
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 16%, transparent);
+  color: var(--modus-wc-color-primary);
+}
+
+.byop-conversation-actions .byop-icon-button--delete:hover {
+  background: color-mix(in srgb, #dc2626 16%, transparent);
+  color: #dc2626;
+}
+
+.byop-conversation-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.15rem;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.byop-conversation:hover .byop-conversation-actions,
+.byop-conversation:focus-within .byop-conversation-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.byop-tooltip-host {
+  position: relative;
+}
+
+.byop-tooltip {
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 0.35rem);
+  left: 50%;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.35rem;
+  background: var(--modus-wc-color-base-content);
+  color: var(--modus-wc-color-base-page);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.byop-tooltip-host:hover .byop-tooltip,
+.byop-tooltip-host:focus-visible .byop-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.byop-plugin-hub-card {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 0.85rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--modus-wc-color-primary) 6%, var(--modus-wc-color-base-page)),
+    var(--modus-wc-color-base-100)
+  );
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.byop-plugin-hub-card:hover {
+  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 40%, var(--modus-wc-color-base-300));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent);
+  transform: translateY(-1px);
+}
+
+.byop-plugin-hub-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: var(--modus-wc-color-primary);
+  color: var(--modus-wc-color-primary-content);
+}
+
+.byop-plugin-hub-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.byop-plugin-hub-chevron {
+  font-size: 1.25rem;
+  opacity: 0.45;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.byop-plugin-hub-card:hover .byop-plugin-hub-chevron {
+  opacity: 0.85;
+  transform: translateX(2px);
+}
+
+.byop-profile-menu {
+  position: relative;
+}
+
+.byop-profile-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.35rem 0.25rem 0.65rem;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 999px;
+  background: var(--modus-wc-color-base-100);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.byop-profile-trigger:hover {
+  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 35%, var(--modus-wc-color-base-300));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--modus-wc-color-black) 6%, transparent);
+}
+
+.byop-profile-dropdown {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 15rem;
+  padding: 0.75rem;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 0.75rem;
+  background: var(--modus-wc-color-base-page);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--modus-wc-color-black) 14%, transparent);
+}
+
+.byop-profile-dropdown-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.byop-profile-dropdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.8125rem;
+}
+
+.byop-profile-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.byop-profile-menu-item {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--modus-wc-color-base-100);
+  color: var(--modus-wc-color-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.byop-profile-menu-item:hover {
+  background: var(--modus-wc-color-base-200);
+}
+
+.byop-view-enter {
+  animation: byop-view-in 280ms ease both;
+}
+
+.byop-dropdown-enter {
+  animation: byop-dropdown-in 200ms ease both;
+}
+
+@keyframes byop-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes byop-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.byop-plugins-page {
+  overflow-y: auto;
+  background: var(--modus-wc-color-base-page);
+}
+
+.byop-plugins-count {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--modus-wc-color-base-300);
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.byop-plugin-card {
+  border-radius: 0.9rem;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.byop-plugin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--modus-wc-color-black) 10%, transparent);
+}
+
+.byop-plugin-meta {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+}
+
+.byop-plugin-meta dt {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.byop-plugin-status {
+  flex-shrink: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.byop-plugin-status.is-connected {
+  background: color-mix(in srgb, #1a7f37 18%, transparent);
+  color: #1a7f37;
+}
+
+.byop-plugin-status.is-pending {
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 14%, transparent);
+  color: var(--modus-wc-color-primary);
+}
+
+.byop-plugin-status.is-disconnected {
+  background: var(--modus-wc-color-base-200);
+  opacity: 0.85;
+}
+
+.byop-plugin-status.is-error {
+  background: color-mix(in srgb, #c42b1c 16%, transparent);
+  color: #c42b1c;
+}
+
+.byop-plugin-error {
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #c42b1c 10%, var(--modus-wc-color-base-page));
+  color: #c42b1c;
+}
+
+.byop-plugin-pending {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+.byop-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--modus-wc-color-base-300);
+  border-top-color: var(--modus-wc-color-primary);
+  border-radius: 50%;
+  animation: byop-spin 0.8s linear infinite;
+}
+
+@keyframes byop-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byop-view-enter,
+  .byop-dropdown-enter,
+  .byop-conversation,
+  .byop-conversation-actions,
+  .byop-plugin-hub-card,
+  .byop-plugin-card,
+  .byop-gemini-composer,
+  .byop-send-button,
+  .byop-spinner {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .byop-plugin-hub-card:hover,
+  .byop-plugin-card:hover,
+  .byop-conversation:hover {
+    transform: none;
+  }
 }

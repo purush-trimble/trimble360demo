@@ -62,7 +62,20 @@ export interface SavedWidget {
 export type ThemePreference = "light" | "dark" | "system";
 export type DensityPreference = "comfortable" | "compact";
 
+export type PluginConnectionStatus = "disconnected" | "pending" | "connected" | "error";
+
+export interface PluginConnection {
+  pluginId: PluginId;
+  status: PluginConnectionStatus;
+  fchid?: string;
+  lastError?: string;
+  connectedAt?: string;
+  updatedAt: string;
+}
+
 export interface UserPreferences {
   theme: ThemePreference;
   density: DensityPreference;
+  /** When true, sidebar and profile expose navigation to the Plugins page */
+  pluginsMenuVisible: boolean;
 }

@@ -2,13 +2,13 @@ import { createMemo, createSignal, Show } from "solid-js";
 import { ChatWindow } from "@/components/ChatWindow";
 import { LoginPage } from "@/components/LoginPage";
 import { ChatSidebar } from "@/components/layout/ChatSidebar";
-import { SavedWidgetsPanel } from "@/components/layout/SavedWidgetsPanel";
-import { ThemeSettings } from "@/components/layout/ThemeSettings";
+import { ProfileMenu } from "@/components/layout/ProfileMenu";
+import { PluginsPage } from "@/components/plugins/PluginsPage";
 import { ModusButton } from "@/components/modus/ModusButton";
 import { isAuthenticated, signOut } from "@/lib/auth";
-import { currentUser } from "@/lib/currentUser";
-import { sendMessage, state } from "@/lib/mockStore";
-import type { PluginId } from "@/lib/types";
+import { isPluginConnected, listConnectablePluginIds, state } from "@/lib/mockStore";
+
+type AppView = "workspace" | "plugins";
 
 export default function App() {
   return (
@@ -19,22 +19,12 @@ export default function App() {
 }
 
 function Workspace() {
-  const [mounted, setMounted] = createSignal<PluginId[]>([]);
   const [chatMenuOpen, setChatMenuOpen] = createSignal(true);
-  const [showWidgets, setShowWidgets] = createSignal(true);
-  const entitlements = createMemo(() => state.entitlements.filter((item) => item.userId === currentUser.id));
-  const licensedProducts = createMemo(() =>
-    entitlements()
-      .filter((e) => e.active)
-      .map((e) => e.pluginId),
-  );
-  function toggleProduct(id: PluginId) {
-    setMounted((items) => (items.includes(id) ? items.filter((x) => x !== id) : [...items, id]));
-  }
+  const [view, setView] = createSignal<AppView>("workspace");
 
-  function runWidgetPrompt(prompt: string) {
-    sendMessage(prompt, mounted());
-  }
+  const connectedPlugins = createMemo(() => listConnectablePluginIds().filter((id) => isPluginConnected(id)));
+
+  const showPluginsNav = () => state.preferences.pluginsMenuVisible;
 
   return (
     <div class="byop-app min-h-screen bg-[var(--modus-wc-color-base-page)] text-[var(--modus-wc-color-base-content)]">
@@ -56,42 +46,50 @@ function Workspace() {
           </span>
         </div>
         <div class="byop-topbar-actions">
-          <ThemeSettings />
-          <span class="text-sm">{currentUser.name}</span>
-          <modus-wc-avatar initials={currentUser.initials} />
-          <ModusButton variant="outlined" onClick={() => setShowWidgets((v) => !v)}>
-            {showWidgets() ? "Hide widgets" : "Show widgets"}
-          </ModusButton>
+          <Show when={showPluginsNav()}>
+            <ModusButton variant="text" onClick={() => setView("plugins")}>Plugins</ModusButton>
+          </Show>
+          <ProfileMenu onOpenPlugins={() => setView("plugins")} />
           <ModusButton variant="outlined" onClick={signOut}>
             Sign out
           </ModusButton>
         </div>
       </header>
       <div class="byop-shell flex h-[calc(100vh-64px)] w-full">
-        <div class={`byop-chat-sidebar shrink-0 flex ${chatMenuOpen() ? "is-open" : "is-collapsed"}`}>
-          <ChatSidebar
-            open={chatMenuOpen()}
-            onToggleOpen={() => setChatMenuOpen((open) => !open)}
-            mounted={mounted()}
-            licensedProducts={licensedProducts()}
-            onToggleProduct={toggleProduct}
-          />
-        </div>
-        <main class="flex min-w-0 flex-1 flex-col gap-4 p-4 lg:p-7">
-          <div class="byop-main-header">
-            <span class="byop-main-header-mark">+</span>
-            <div>
-              <p class="text-xs font-bold uppercase tracking-wider text-[var(--modus-wc-color-primary)]">Licensed product workspace</p>
-              <h2 class="text-2xl font-bold tracking-tight">Compose workflows across Trimble products</h2>
-              <p class="mt-1 text-sm opacity-65">Describe an outcome and BYOP will assemble the right product steps.</p>
+        <Show when={view() === "workspace"}>
+          <div class={`byop-chat-sidebar shrink-0 flex ${chatMenuOpen() ? "is-open" : "is-collapsed"}`}>
+            <ChatSidebar
+              open={chatMenuOpen()}
+              onToggleOpen={() => setChatMenuOpen((open) => !open)}
+              connectedProducts={connectedPlugins()}
+              showPluginsNav={showPluginsNav()}
+              onOpenPlugins={() => setView("plugins")}
+            />
+          </div>
+        </Show>
+        <Show
+          when={view() === "workspace"}
+          fallback={
+            <div class="flex min-w-0 flex-1">
+              <PluginsPage onBack={() => setView("workspace")} />
             </div>
-          </div>
-          <ChatWindow mountedPlugins={mounted()} onCreated={() => undefined} />
-        </main>
-        <Show when={showWidgets()}>
-          <div class="hidden w-80 shrink-0 xl:flex">
-            <SavedWidgetsPanel onRunPrompt={runWidgetPrompt} />
-          </div>
+          }
+        >
+          <main class="byop-view-enter flex min-w-0 flex-1 flex-col gap-4 p-4 lg:p-7">
+            <div class="byop-main-header">
+              <span class="byop-main-header-mark">+</span>
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-[var(--modus-wc-color-primary)]">Licensed product workspace</p>
+                <h2 class="text-2xl font-bold tracking-tight">Compose workflows across Trimble products</h2>
+                <p class="mt-1 text-sm opacity-65">Describe an outcome and BYOP will assemble the right product steps.</p>
+              </div>
+            </div>
+            <ChatWindow
+              mountedPlugins={connectedPlugins()}
+              connectedPlugins={connectedPlugins()}
+              onCreated={() => undefined}
+            />
+          </main>
         </Show>
       </div>
     </div>

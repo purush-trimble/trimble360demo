@@ -2,13 +2,21 @@ import { createEffect, createMemo, createSignal, For } from "solid-js";
 import { AgentUIRenderer } from "@/components/agent/AgentUIRenderer";
 import { currentUser } from "@/lib/currentUser";
 import { getActiveMessages, sendMessage, state } from "@/lib/mockStore";
+import { PLUGIN_CATALOG } from "@/lib/pluginCatalog";
 import type { PluginId } from "@/lib/types";
 
-export function ChatWindow(props: { mountedPlugins: PluginId[]; onCreated: () => void; onSend?: (text: string) => void }) {
+export function ChatWindow(props: {
+  mountedPlugins: PluginId[];
+  connectedPlugins: PluginId[];
+  onCreated: () => void;
+  onSend?: (text: string) => void;
+}) {
   const [text, setText] = createSignal("");
   let feed: HTMLDivElement | undefined;
+  let inputEl: HTMLInputElement | undefined;
 
   const messages = createMemo(() => getActiveMessages());
+  const hasText = () => text().trim().length > 0;
 
   createEffect(() => {
     const count = messages().length;
@@ -44,7 +52,7 @@ export function ChatWindow(props: { mountedPlugins: PluginId[]; onCreated: () =>
             <modus-wc-avatar initials="AI" />
             <div class="byop-empty-state max-w-xl p-5 text-sm">
               <p class="mb-1 font-semibold">Start with an outcome</p>
-              <p class="mb-3 opacity-75">Add licensed products from the sidebar, then try:</p>
+              <p class="mb-3 opacity-75">Connect plugins with your FCHID, mount them from the sidebar, then try:</p>
               <button type="button" class="byop-link font-semibold" onClick={() => send("Publish a Connect design to WorksManager")}>
                 &quot;Publish a Connect design to WorksManager&quot;
               </button>
@@ -76,18 +84,54 @@ export function ChatWindow(props: { mountedPlugins: PluginId[]; onCreated: () =>
         </For>
       </div>
       <div class="byop-composer-wrap border-t border-[var(--modus-wc-color-base-200)] p-4">
-        <div class="byop-gemini-composer">
-          <button type="button" class="byop-composer-icon" aria-label="Add attachment" title="Add attachment">+</button>
+        <div
+          class="byop-gemini-composer"
+          onClick={(event) => {
+            const target = event.target as HTMLElement;
+            if (target.closest(".byop-composer-icon, .byop-send-button")) return;
+            inputEl?.focus();
+          }}
+        >
+          <button type="button" class="byop-composer-icon" aria-label="Add attachment" title="Add attachment">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
           <input
+            ref={inputEl}
             class="byop-composer-input"
             aria-label="Message"
+            placeholder="Ask Trimble AI to help you build something…"
             value={text()}
             onInput={(event) => setText(event.currentTarget.value)}
-            onKeyDown={(event) => event.key === "Enter" && send()}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) send();
+            }}
           />
-          <button type="button" class="byop-send-button" aria-label="Send message" title="Send message" onClick={() => send()}>
-            ↑
+          <button
+            type="button"
+            class="byop-send-button"
+            aria-label="Send message"
+            title={hasText() ? "Send message" : "Type a message to send"}
+            disabled={!hasText()}
+            onClick={() => send()}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m4 4 16 8-16 8 3.5-8L4 4Zm3.5 8H20" />
+            </svg>
           </button>
+        </div>
+        <p class="byop-composer-hint">Press Ctrl + Enter to send</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2" aria-label="Connected plugins">
+          <span class="text-xs font-semibold opacity-60">Connected plugins:</span>
+          <For each={props.connectedPlugins}>
+            {(id) => (
+              <span class="byop-plugin-chip">
+                <span class="byop-plugin-chip-dot" aria-hidden="true" />
+                {PLUGIN_CATALOG[id].name}
+              </span>
+            )}
+          </For>
         </div>
       </div>
     </section>
