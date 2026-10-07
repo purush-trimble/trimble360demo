@@ -46,9 +46,6 @@ function Workspace() {
           </span>
         </div>
         <div class="byop-topbar-actions">
-          <Show when={showPluginsNav()}>
-            <ModusButton variant="text" onClick={() => setView("plugins")}>Plugins</ModusButton>
-          </Show>
           <ProfileMenu onOpenPlugins={() => setView("plugins")} />
           <ModusButton variant="outlined" onClick={signOut}>
             Sign out
