@@ -10,7 +10,21 @@
     "userId": "demo-user",
     "pluginId": "worksmanager",
     "subscriptionAccountId": "wm-demo",
-    "plan": "WorksManager Advanced",
+    "plan": "Pro",
+    "active": true
+  },
+  {
+    "userId": "demo-user",
+    "pluginId": "b2westimate",
+    "subscriptionAccountId": "b2w-demo",
+    "plan": "B2W Estimate Professional",
+    "active": true
+  },
+  {
+    "userId": "demo-user",
+    "pluginId": "autobid",
+    "subscriptionAccountId": "autobid-demo",
+    "plan": "AutoBid Enterprise",
     "active": true
   }
 ]

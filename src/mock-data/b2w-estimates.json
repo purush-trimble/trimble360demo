@@ -1,0 +1,29 @@
+[
+  {
+    "id": "est-001",
+    "accountId": "b2w-demo",
+    "name": "Highway 12 resurfacing",
+    "project": "DOT Phase 2",
+    "status": "In review",
+    "total": "$1.24M",
+    "updatedAt": "Oct 4, 2026"
+  },
+  {
+    "id": "est-002",
+    "accountId": "b2w-demo",
+    "name": "Warehouse pad – Lot C",
+    "project": "Meridian Industrial",
+    "status": "Draft",
+    "total": "$312K",
+    "updatedAt": "Oct 1, 2026"
+  },
+  {
+    "id": "est-003",
+    "accountId": "b2w-demo",
+    "name": "Storm drain – Block 7",
+    "project": "City utilities",
+    "status": "Approved",
+    "total": "$89K",
+    "updatedAt": "Sep 22, 2026"
+  }
+]

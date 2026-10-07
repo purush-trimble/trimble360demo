@@ -1,0 +1,29 @@
+[
+  {
+    "id": "bid-001",
+    "accountId": "autobid-demo",
+    "title": "Municipal paving – Zone 4",
+    "client": "City of Riverside",
+    "amount": "$2.1M",
+    "status": "Submitted",
+    "dueDate": "Oct 15, 2026"
+  },
+  {
+    "id": "bid-002",
+    "accountId": "autobid-demo",
+    "title": "Site prep – Solar farm",
+    "client": "Helio Energy",
+    "amount": "$640K",
+    "status": "Draft",
+    "dueDate": "Oct 20, 2026"
+  },
+  {
+    "id": "bid-003",
+    "accountId": "autobid-demo",
+    "title": "Bridge deck repair",
+    "client": "State DOT",
+    "amount": "$980K",
+    "status": "Won",
+    "dueDate": "Sep 30, 2026"
+  }
+]

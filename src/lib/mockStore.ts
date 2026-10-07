@@ -4,10 +4,12 @@ import chatMessagesSeed from "@/mock-data/chat-messages.json";
 import connectFilesSeed from "@/mock-data/connect-files.json";
 import worksmanagerDesignsSeed from "@/mock-data/worksmanager-designs.json";
 import worksmanagerProjectsSeed from "@/mock-data/worksmanager-projects.json";
+import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
+import autobidsSeed from "@/mock-data/autobids.json";
 import { currentUser } from "@/lib/currentUser";
 import { resolveIntent } from "@/lib/agent/intentRouter";
 import type { ChatMessage } from "@/lib/agent/types";
-import { validateFchid } from "@/lib/pluginCatalog";
+import { normalizeWorksManagerPlan, validateFchid } from "@/lib/pluginCatalog";
 import type {
   Conversation,
   Design,
@@ -16,6 +18,8 @@ import type {
   PluginId,
   SavedWidget,
   UserPreferences,
+  AutoBid,
+  B2wEstimate,
   WorksManagerProject,
 } from "@/lib/types";
 
@@ -46,6 +50,16 @@ function defaultPluginConnections(): PluginConnection[] {
     },
     {
       pluginId: "worksmanager",
+      status: "disconnected",
+      updatedAt: now,
+    },
+    {
+      pluginId: "b2westimate",
+      status: "disconnected",
+      updatedAt: now,
+    },
+    {
+      pluginId: "autobid",
       status: "disconnected",
       updatedAt: now,
     },
@@ -93,11 +107,44 @@ function migrateFromV1(): Persisted | null {
   }
 }
 
+function migratePluginId(id: string): PluginId {
+  if (id === "workorders") return "b2westimate";
+  return id as PluginId;
+}
+
+function normalizeEntitlementRow(e: Entitlement): Entitlement {
+  const pluginId = migratePluginId(e.pluginId as string);
+  const plan = pluginId === "worksmanager" ? normalizeWorksManagerPlan(e.plan) : e.plan;
+  const subscriptionAccountId = e.pluginId === "workorders" ? "b2w-demo" : e.subscriptionAccountId;
+  return { ...e, pluginId, plan, subscriptionAccountId };
+}
+
+/** ponytail: O(n²) scan; upgrade path = versioned persist blob + single migration */
+function mergeEntitlementsFromSeed(stored: Entitlement[]): Entitlement[] {
+  const seed = entitlementsSeed as Entitlement[];
+  const merged = [...stored];
+  for (const row of seed) {
+    if (!merged.some((e) => e.userId === row.userId && e.pluginId === row.pluginId)) merged.push(row);
+  }
+  return merged;
+}
+
+function mergePluginConnectionsFromDefaults(stored: PluginConnection[]): PluginConnection[] {
+  const merged = stored.map((c) => ({ ...c, pluginId: migratePluginId(c.pluginId as string) }));
+  for (const def of defaultPluginConnections()) {
+    if (!merged.some((c) => c.pluginId === def.pluginId)) merged.push(def);
+  }
+  return merged;
+}
+
 function normalizePersisted(raw: Persisted): Persisted {
+  const entitlements = mergeEntitlementsFromSeed((raw.entitlements ?? []).map(normalizeEntitlementRow));
+  const pluginConnections = mergePluginConnectionsFromDefaults(raw.pluginConnections ?? []);
   return {
     ...raw,
+    entitlements,
+    pluginConnections: pluginConnections.length ? pluginConnections : defaultPluginConnections(),
     preferences: normalizePreferences(raw.preferences),
-    pluginConnections: raw.pluginConnections?.length ? raw.pluginConnections : defaultPluginConnections(),
   };
 }
 
@@ -128,6 +175,8 @@ const [state, setState] = createStore({
   designs: (persisted?.designs ?? worksmanagerDesignsSeed) as Design[],
   connectFiles: connectFilesSeed,
   projects: worksmanagerProjectsSeed as WorksManagerProject[],
+  b2wEstimates: b2wEstimatesSeed as B2wEstimate[],
+  autobids: autobidsSeed as AutoBid[],
   conversations: initialConv,
   activeConversationId: persisted?.activeConversationId ?? initialConv[0]?.id ?? "",
   widgets: (persisted?.widgets ?? []) as SavedWidget[],
@@ -419,6 +468,14 @@ export function getConnectFiles(accountId: string) {
 
 export function getProjects(accountId: string) {
   return state.projects.filter((project) => project.accountId === accountId);
+}
+
+export function getB2wEstimates(accountId: string) {
+  return state.b2wEstimates.filter((est) => est.accountId === accountId);
+}
+
+export function getAutoBids(accountId: string) {
+  return state.autobids.filter((bid) => bid.accountId === accountId);
 }
 
 export function getDesigns(projectId: string) {

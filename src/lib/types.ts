@@ -1,4 +1,4 @@
-export type PluginId = "connect" | "worksmanager";
+export type PluginId = "connect" | "worksmanager" | "b2westimate" | "autobid";
 
 export interface ConnectAccount {
   id: string;
@@ -22,6 +22,24 @@ export interface WorksManagerProject {
   accountId: string;
   name: string;
   status: string;
+}
+export interface B2wEstimate {
+  id: string;
+  accountId: string;
+  name: string;
+  project: string;
+  status: string;
+  total: string;
+  updatedAt: string;
+}
+export interface AutoBid {
+  id: string;
+  accountId: string;
+  title: string;
+  client: string;
+  amount: string;
+  status: string;
+  dueDate: string;
 }
 export interface Design {
   id: string;

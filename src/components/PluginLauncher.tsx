@@ -1,4 +1,5 @@
 import { ModusButton } from "@/components/modus/ModusButton";
+import { PLUGIN_CATALOG } from "@/lib/pluginCatalog";
 import type { Entitlement, PluginId } from "@/lib/types";
 
 export function PluginLauncher(props: {
@@ -16,7 +17,7 @@ export function PluginLauncher(props: {
             onClick={() => props.onAdd(item.pluginId)}
           >
             {props.mounted.includes(item.pluginId) ? "✓ " : "+ "}
-            {item.pluginId === "connect" ? "Trimble Connect" : "WorksManager"}
+            {PLUGIN_CATALOG[item.pluginId]?.name ?? item.pluginId}
           </ModusButton>
         ))}
     </div>

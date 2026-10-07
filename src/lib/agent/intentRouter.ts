@@ -1,4 +1,5 @@
 import type { Entitlement, PluginId } from "@/lib/types";
+import { PLUGIN_CATALOG } from "@/lib/pluginCatalog";
 import { DEFAULT_PROMPTS, INTENTS } from "./intents";
 import type { AgentContext, AgentUIAction } from "./types";
 
@@ -28,7 +29,7 @@ export function resolveIntent(text: string, context: AgentContext): { assistantT
     }
     if (!context.mountedPlugins.has(pluginId)) {
       return {
-        assistantText: `Add ${pluginId === "connect" ? "Trimble Connect" : "WorksManager"} from your licensed products, then ask again.`,
+        assistantText: `Add ${PLUGIN_CATALOG[pluginId]?.name ?? pluginId} from your licensed products, then ask again.`,
         uiAction: upsellFor(pluginId, "not_added"),
       };
     }

@@ -1,6 +1,8 @@
 import type { AgentUIAction } from "@/lib/agent/types";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
 import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginCard";
+import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCard";
+import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { CreateDesignCard } from "./CreateDesignCard";
 import { EntitlementUpsellCard } from "./EntitlementUpsellCard";
 import { PublishConnectToWmCard } from "./PublishConnectToWmCard";
@@ -49,6 +51,32 @@ export function AgentUIRenderer(props: {
             prompt="show my designs"
             action="worksmanager_design_list"
             productIds={["worksmanager"]}
+          />
+        </div>
+      );
+    case "b2westimate_list":
+      return (
+        <div class="space-y-2">
+          <B2wEstimatePluginCard />
+          <SaveWidgetButton
+            name="B2W estimates"
+            description="View construction estimates"
+            prompt="show my B2W estimates"
+            action="b2westimate_list"
+            productIds={["b2westimate"]}
+          />
+        </div>
+      );
+    case "autobid_list":
+      return (
+        <div class="space-y-2">
+          <AutoBidPluginCard />
+          <SaveWidgetButton
+            name="AutoBid bids"
+            description="View and track competitive bids"
+            prompt="show my AutoBid bids"
+            action="autobid_list"
+            productIds={["autobid"]}
           />
         </div>
       );
