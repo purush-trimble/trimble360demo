@@ -86,6 +86,35 @@ function IconNewChat() {
   );
 }
 
+function IconCollapseSidebar() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.25" />
+      <path d="M10 4.5v15" />
+      <path d="m14.5 10.25-2.75 1.75 2.75 1.75" />
+    </svg>
+  );
+}
+
+function IconExpandSidebar() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.25" />
+      <path d="M10 4.5v15" />
+      <path d="m9.5 10.25 2.75 1.75-2.75 1.75" />
+    </svg>
+  );
+}
+
+function IconSearch() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="5.5" />
+      <path d="M20 20 16.2 16.2" />
+    </svg>
+  );
+}
+
 
 
 export function ChatSidebar(props: {
@@ -150,22 +179,16 @@ export function ChatSidebar(props: {
 
           <div class="byop-collapsed-sidebar">
 
-            <button type="button" class="byop-icon-button" aria-label="Open chat menu" title="Open chat menu" onClick={props.onToggleOpen}>
-
-              ☰
-
+            <button type="button" class="byop-collapsed-action byop-collapsed-action--primary" aria-label="Open sidebar" title="Open sidebar" onClick={props.onToggleOpen}>
+              <IconExpandSidebar />
             </button>
 
             <button type="button" class="byop-collapsed-action" aria-label="New chat" title="New chat" onClick={() => createConversation()}>
-
-              +
-
+              <IconNewChat />
             </button>
 
             <button type="button" class="byop-collapsed-action" aria-label="Search chats" title="Search chats" onClick={props.onToggleOpen}>
-
-              ⌕
-
+              <IconSearch />
             </button>
 
             <div class="flex-1" />
@@ -178,32 +201,45 @@ export function ChatSidebar(props: {
 
       >
 
-        <div class="byop-sidebar-tabs" role="tablist" aria-label="Sidebar content">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab() === "chats"}
-            classList={{ "is-active": activeTab() === "chats" }}
-            onClick={() => setActiveTab("chats")}
-          >
-            Chats
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab() === "dashboard"}
-            classList={{ "is-active": activeTab() === "dashboard" }}
-            onClick={() => setActiveTab("dashboard")}
-          >
-            Dashboard
-          </button>
+        <div class="byop-sidebar-top">
+          <div class="byop-sidebar-tabs" role="tablist" aria-label="Sidebar content">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab() === "chats"}
+              classList={{ "is-active": activeTab() === "chats" }}
+              onClick={() => setActiveTab("chats")}
+            >
+              Chats
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab() === "dashboard"}
+              classList={{ "is-active": activeTab() === "dashboard" }}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Dashboard
+            </button>
+          </div>
+          <div class="byop-sidebar-top-actions">
+            <button
+              type="button"
+              class="byop-sidebar-collapse byop-tooltip-host"
+              aria-label="Collapse sidebar"
+              onClick={props.onToggleOpen}
+            >
+              <IconCollapseSidebar />
+              <span class="byop-tooltip">Collapse panel</span>
+            </button>
+          </div>
         </div>
         <div class="byop-sidebar-tab-tools">
           <Show
             when={activeTab() === "chats"}
             fallback={
               <label class="byop-search">
-                <span class="byop-search-icon" aria-hidden="true">⌕</span>
+                <span class="byop-search-icon" aria-hidden="true"><IconSearch /></span>
                 <input
                   class="byop-input"
                   aria-label="Search dashboard widgets"
@@ -218,7 +254,7 @@ export function ChatSidebar(props: {
             }
           >
             <label class="byop-search">
-              <span class="byop-search-icon" aria-hidden="true">⌕</span>
+              <span class="byop-search-icon" aria-hidden="true"><IconSearch /></span>
               <input
                 class="byop-input"
                 aria-label="Search chats"
