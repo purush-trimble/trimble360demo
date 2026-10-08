@@ -1,8 +1,22 @@
 import type { PluginId } from "@/lib/types";
 import { INTENTS } from "@/lib/agent/intents";
+import { PLUGIN_CATALOG } from "@/lib/pluginCatalog";
 
 export type LifecyclePhase = "bid" | "design" | "build";
 export type SolutionGroup = "design" | "construction" | "geospatial" | "transportation";
+/** Status = understand the job; Execute = change something on the project. */
+export type WidgetIntent = "status" | "execute";
+
+/** Multi-product feature mix for one activity on a project phase (handbook widget). */
+export interface ActivityWidget {
+  id: string;
+  name: string;
+  intent: WidgetIntent;
+  phases: LifecyclePhase[];
+  valueStory: string;
+  solutionIds: string[];
+  featureIds: string[];
+}
 
 export interface OrgAccount {
   id: string;
@@ -353,6 +367,200 @@ export const FEATURES: ProductFeature[] = [
   },
 ];
 
+export const ACTIVITY_WIDGETS: ActivityWidget[] = [
+  {
+    id: "design-to-field",
+    name: "Create, compare, publish",
+    intent: "execute",
+    phases: ["design", "build"],
+    valueStory:
+      "One workflow: create a field design, compare it with other designs in WorksManager, and publish to machines when you are ready.",
+    solutionIds: ["site-planning", "collaboration", "project-mgmt", "machine-control"],
+    featureIds: ["connect_files", "create_design", "wm_designs", "publish_to_wm"],
+  },
+  {
+    id: "bid-value-engineering",
+    name: "Bid value engineering",
+    intent: "execute",
+    phases: ["bid"],
+    valueStory:
+      "When the bid has to come down, review B2W estimates and AutoBid packages alongside the Connect model to test scope changes on the spot.",
+    solutionIds: ["estimating", "collaboration", "bim"],
+    featureIds: ["b2w_estimates", "autobid_bids", "connect_files"],
+  },
+  {
+    id: "bid-status",
+    name: "Bid desk status",
+    intent: "status",
+    phases: ["bid"],
+    valueStory: "See estimate totals and bid due dates in one place — no hopping between precon apps to know if the package is on track.",
+    solutionIds: ["estimating"],
+    featureIds: ["b2w_estimates", "autobid_bids"],
+  },
+  {
+    id: "design-coordination",
+    name: "Issued designs check",
+    intent: "status",
+    phases: ["design"],
+    valueStory: "Browse the coordinated model and see what is already issued in WorksManager before the team commits.",
+    solutionIds: ["bim", "site-planning", "collaboration", "project-mgmt"],
+    featureIds: ["connect_files", "wm_designs"],
+  },
+  {
+    id: "build-status",
+    name: "Build status",
+    intent: "status",
+    phases: ["build"],
+    valueStory: "Understand what is on the machines and in the shared model — a read-focused view for supers and owners.",
+    solutionIds: ["collaboration", "field-systems", "machine-control"],
+    featureIds: ["connect_files", "wm_designs"],
+  },
+  {
+    id: "survey-and-model",
+    name: "Survey and model check",
+    intent: "execute",
+    phases: ["build", "design"],
+    valueStory: "Align survey and layout with the same Connect files the office issued — compare model to what is in the field.",
+    solutionIds: ["survey", "bim", "collaboration"],
+    featureIds: ["connect_files", "wm_designs"],
+  },
+  {
+    id: "precon-handoff",
+    name: "Precon to operations handoff",
+    intent: "status",
+    phases: ["bid", "design"],
+    valueStory: "See the estimate, open the model, and know what the field team will inherit when the job is awarded.",
+    solutionIds: ["estimating", "bim", "collaboration"],
+    featureIds: ["b2w_estimates", "connect_files"],
+  },
+  // --- Trimble-ecosystem activity concepts (demo features as stand-ins for full suites) ---
+  {
+    id: "connected-project-setup",
+    name: "Connected project setup",
+    intent: "execute",
+    phases: ["design", "build"],
+    valueStory:
+      "Jobsite Connectivity style: treat Connect as the source of truth, then spin up the WorksManager design import the field team will run — same story as Connected Project without hopping apps.",
+    solutionIds: ["collaboration", "site-planning", "project-mgmt"],
+    featureIds: ["connect_files", "create_design"],
+  },
+  {
+    id: "submittal-spec-gate",
+    name: "Submittal and spec gate",
+    intent: "status",
+    phases: ["bid", "design"],
+    valueStory:
+      "ProjectSight submittal mindset: open the spec and model folders in Connect while AutoBid shows which packages still block fabrication or buy-out.",
+    solutionIds: ["estimating", "bim", "collaboration"],
+    featureIds: ["connect_files", "autobid_bids"],
+  },
+  {
+    id: "field-issue-to-rfi",
+    name: "Field issue to RFI",
+    intent: "execute",
+    phases: ["build", "design"],
+    valueStory:
+      "Start from a ProjectSight-style field issue: pull drawing context from Connect, compare issued WorksManager designs, then you are ready to formalize the RFI with the right attachments.",
+    solutionIds: ["collaboration", "project-mgmt", "bim"],
+    featureIds: ["connect_files", "wm_designs"],
+  },
+  {
+    id: "push-grade-tonight",
+    name: "Push grade tonight",
+    intent: "execute",
+    phases: ["build"],
+    valueStory:
+      "Machine control night shift: review the design roster in WorksManager and publish the approved surface to devices — the ops loop after the office signs off in Connect.",
+    solutionIds: ["machine-control", "field-systems", "project-mgmt"],
+    featureIds: ["wm_designs", "publish_to_wm"],
+  },
+  {
+    id: "pco-cost-check",
+    name: "Change order cost check",
+    intent: "execute",
+    phases: ["bid", "build"],
+    valueStory:
+      "Before a potential change order hits Vista or Spectrum, reopen the B2W estimate line and the Connect model markup in one handbook view — ProjectSight-to-ERP sanity check.",
+    solutionIds: ["estimating", "bim", "collaboration"],
+    featureIds: ["b2w_estimates", "connect_files"],
+  },
+  {
+    id: "owner-site-walk",
+    name: "Owner site walk",
+    intent: "status",
+    phases: ["build"],
+    valueStory:
+      "Owner and CM rep walk: what the coordinated model shows in Connect versus what is actually loaded on machines in WorksManager — transparency without a training session.",
+    solutionIds: ["collaboration", "machine-control", "field-systems"],
+    featureIds: ["connect_files", "wm_designs"],
+  },
+  {
+    id: "bid-night-closeout",
+    name: "Bid night closeout",
+    intent: "execute",
+    phases: ["bid"],
+    valueStory:
+      "Estimator closeout: lock B2W totals against AutoBid package due dates and scope tabs — the precon desk version of a ProjectSight dashboard, minus the module hopping.",
+    solutionIds: ["estimating"],
+    featureIds: ["b2w_estimates", "autobid_bids"],
+  },
+  {
+    id: "layout-verify-republish",
+    name: "Layout verify and republish",
+    intent: "execute",
+    phases: ["build"],
+    valueStory:
+      "Survey and layout loop: verify the issued design against Connect, adjust in WorksManager, and republish — field systems workflow without reopening the full design authoring stack.",
+    solutionIds: ["survey", "machine-control", "collaboration", "project-mgmt"],
+    featureIds: ["connect_files", "wm_designs", "publish_to_wm"],
+  },
+  {
+    id: "shop-release-check",
+    name: "Shop release check",
+    intent: "status",
+    phases: ["design"],
+    valueStory:
+      "Fabrication and steel detailing handoff: confirm the released model set in Connect before the shop or yard commits — Tekla/Trimble detailing release gate in one glance.",
+    solutionIds: ["bim", "detailing", "fabrication", "collaboration"],
+    featureIds: ["connect_files"],
+  },
+  {
+    id: "dispatch-job-packet",
+    name: "Dispatch job packet",
+    intent: "status",
+    phases: ["build"],
+    valueStory:
+      "Haul and fleet dispatch: the Connect job packet dispatchers trust (maps, tickets, daily plan) while routing and telematics run in their own Trimble apps.",
+    solutionIds: ["collaboration", "routing", "supply-chain"],
+    featureIds: ["connect_files"],
+  },
+  {
+    id: "takeoff-model-reconcile",
+    name: "Takeoff vs model reconcile",
+    intent: "execute",
+    phases: ["bid"],
+    valueStory:
+      "Estimating takeoff meet BIM: reconcile B2W quantities with the live Connect model when scope shifts mid-bid — Construction One precon without duplicate quantity entry.",
+    solutionIds: ["estimating", "bim", "collaboration"],
+    featureIds: ["b2w_estimates", "connect_files"],
+  },
+  {
+    id: "daily-report-packet",
+    name: "Daily report packet",
+    intent: "status",
+    phases: ["build"],
+    valueStory:
+      "ProjectSight daily report mindset: supers skim shared files and machine-ready designs to answer “what changed today?” before they write the log.",
+    solutionIds: ["collaboration", "project-mgmt", "field-systems"],
+    featureIds: ["connect_files", "wm_designs"],
+  },
+];
+
+export const WIDGET_INTENT_LABEL: Record<WidgetIntent, string> = {
+  status: "Understand status",
+  execute: "Execute work",
+};
+
 /** ponytail: phase hints only — user trims the list; upgrade path = ML or admin templates */
 const PHASE_SUGGESTED_SOLUTIONS: Record<LifecyclePhase, string[]> = {
   bid: ["estimating", "collaboration", "site-planning", "bim"],
@@ -403,6 +611,46 @@ export function featuresForSolutions(solutionIds: string[]) {
   return FEATURES.filter((feature) => allowed.has(feature.id) && featureLicensed(feature, plugins));
 }
 
+export function widgetById(id: string) {
+  return ACTIVITY_WIDGETS.find((widget) => widget.id === id);
+}
+
+function licensedFeaturesForAccount(accountId: string) {
+  const account = accountById(accountId);
+  if (!account) return new Set<string>();
+  return new Set(featuresForSolutions(account.solutionIds).map((feature) => feature.id));
+}
+
+/** Activity widgets this account can run on this project phase (demo features only). */
+export function widgetsForProject(accountId: string, projectId: string) {
+  const account = accountById(accountId);
+  const project = projectById(projectId);
+  if (!account || !project) return [] as ActivityWidget[];
+  const licensedSolutions = new Set(account.solutionIds);
+  const licensedFeatures = licensedFeaturesForAccount(accountId);
+  return ACTIVITY_WIDGETS.filter(
+    (widget) =>
+      widget.phases.includes(project.phase) &&
+      widget.solutionIds.every((id) => licensedSolutions.has(id)) &&
+      widget.featureIds.every((id) => licensedFeatures.has(id)),
+  );
+}
+
+export function selectionFromWidget(accountId: string, widget: ActivityWidget) {
+  const account = accountById(accountId);
+  const licensedSolutions = new Set(account?.solutionIds ?? []);
+  const solutionIds = widget.solutionIds.filter((id) => licensedSolutions.has(id));
+  const allowedFeatures = new Set(featuresForSolutions(solutionIds).map((feature) => feature.id));
+  const featureIds = widget.featureIds.filter((id) => allowedFeatures.has(id));
+  return {
+    widgetId: widget.id,
+    name: widget.name,
+    solutionIds,
+    featureIds,
+    productIds: productsUsedBy(featureIds),
+  };
+}
+
 /** Phase-based starting point — only solutions the account licenses. User customizes from here. */
 export function suggestedSelection(accountId: string, projectId: string) {
   const account = accountById(accountId);
@@ -423,6 +671,11 @@ export function productsUsedBy(featureIds: string[]): PluginId[] {
     for (const extra of feature.alsoRequires ?? []) ids.add(extra);
   }
   return [...ids];
+}
+
+/** Display names for the product footnote on workflow widget cards. */
+export function productLabelsForFeatures(featureIds: string[]): string[] {
+  return productsUsedBy(featureIds).map((id) => PLUGIN_CATALOG[id].name);
 }
 
 export function promptsFor(featureIds: string[]) {
@@ -453,7 +706,37 @@ export const FEATURE_ACTION: Record<string, string> = {
   autobid_bids: "autobid_list",
 };
 
+export const DESIGN_WORKFLOW_FEATURES = ["create_design", "wm_designs", "publish_to_wm"] as const;
+export const DESIGN_WORKFLOW_ACTION = "design_workflow_unified";
+
+export function isDesignWorkflowBundle(featureIds: readonly string[]) {
+  const set = new Set(featureIds);
+  return DESIGN_WORKFLOW_FEATURES.every((id) => set.has(id));
+}
+
 export function dashboardPanelsForFeatures(featureIds: string[]) {
+  const set = new Set(featureIds);
+  if (isDesignWorkflowBundle(featureIds)) {
+    const panels: { name: string; action: string; featureId: string }[] = [];
+    if (set.has("connect_files")) {
+      const feature = featureById("connect_files");
+      const action = FEATURE_ACTION.connect_files;
+      if (feature && action) panels.push({ name: feature.name, action, featureId: "connect_files" });
+    }
+    panels.push({
+      name: "Create, compare, publish",
+      action: DESIGN_WORKFLOW_ACTION,
+      featureId: "create_design",
+    });
+    for (const id of featureIds) {
+      if (id === "connect_files" || (DESIGN_WORKFLOW_FEATURES as readonly string[]).includes(id)) continue;
+      const feature = featureById(id);
+      const action = FEATURE_ACTION[id];
+      if (!feature || !action) continue;
+      panels.push({ name: feature.name, action, featureId: id });
+    }
+    return panels;
+  }
   return featureIds.flatMap((id) => {
     const feature = featureById(id);
     const action = FEATURE_ACTION[id];
@@ -478,6 +761,18 @@ if (import.meta.env.DEV) {
   const haul = suggestedSelection("acct-northline", "proj-haul");
   if (!haul.solutionIds.length || haul.solutionIds.includes("bim")) {
     console.error("haul build phase suggestion self-check failed", haul);
+  }
+  const morganWidgets = widgetsForProject("acct-morgan", "proj-north-ridge");
+  if (!morganWidgets.some((widget) => widget.id === "design-to-field")) {
+    console.error("morgan build widgets self-check failed", morganWidgets.map((w) => w.id));
+  }
+  const designPanels = dashboardPanelsForFeatures(["connect_files", "create_design", "wm_designs", "publish_to_wm"]);
+  if (designPanels.length !== 2 || designPanels[1]?.action !== DESIGN_WORKFLOW_ACTION) {
+    console.error("design workflow panel self-check failed", designPanels);
+  }
+  const summitWidgets = widgetsForProject("acct-summit", "proj-i5");
+  if (!summitWidgets.some((widget) => widget.id === "bid-value-engineering")) {
+    console.error("summit bid widgets self-check failed", summitWidgets.map((w) => w.id));
   }
   const harbor = accountById("acct-harbor");
   if (!harbor || harbor.solutionIds.includes("estimating")) console.error("harbor license self-check failed");

@@ -1852,6 +1852,20 @@ select {
   background: color-mix(in srgb, var(--modus-wc-color-primary) 8%, var(--modus-wc-color-base-page));
 }
 
+.byop-profile-saved-item.is-editing {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--modus-wc-color-primary) 35%, transparent);
+}
+
+.byop-profile-saved .byop-icon-button--rename svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .byop-profile-step {
   font-size: 0.8125rem;
   font-weight: 700;
@@ -1886,6 +1900,22 @@ select {
 .byop-choice.is-disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.byop-widget-footnote {
+  display: block;
+  margin-top: 0.65rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--modus-wc-color-base-200);
+  font-size: 0.65rem;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  opacity: 0.55;
+}
+
+.byop-widget-footnote--inline {
+  margin-top: 0.5rem;
+  padding-top: 0.45rem;
 }
 
 .byop-choice-check {
@@ -1960,4 +1990,34 @@ select {
 .byop-panel-remove:hover {
   opacity: 1;
   background: var(--modus-wc-color-base-200);
+}
+
+.byop-panel--full {
+  grid-column: 1 / -1;
+}
+
+.byop-design-workflow {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.byop-design-workflow-step-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.byop-design-workflow-step-num {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--modus-wc-color-primary);
+  color: var(--modus-wc-color-primary-content, #fff);
+  font-size: 0.75rem;
 }

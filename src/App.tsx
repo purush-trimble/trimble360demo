@@ -84,7 +84,7 @@ function Workspace() {
         </div>
       </header>
       <Show when={view() === "profile-setup"}>
-        <WorkProfileSetup onDone={finishProfileSetup} onCancel={slice() ? finishProfileSetup : undefined} />
+        <WorkProfileSetup onDone={finishProfileSetup} onCancel={slice() ? finishProfileSetup : undefined} initialEditId={profile()?.id} />
       </Show>
       <Show when={view() !== "profile-setup"}>
         <div class="byop-shell flex h-[calc(100vh-64px)] w-full">

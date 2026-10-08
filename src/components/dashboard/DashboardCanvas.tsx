@@ -7,10 +7,18 @@ import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCard";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
 import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginCard";
-import { FEATURE_ACTION, featureById } from "@/lib/workProfileCatalog";
+import { DesignWorkflowPanel } from "@/components/dashboard/DesignWorkflowPanel";
+import {
+  DESIGN_WORKFLOW_ACTION,
+  DESIGN_WORKFLOW_FEATURES,
+  FEATURE_ACTION,
+  featureById,
+  isDesignWorkflowBundle,
+} from "@/lib/workProfileCatalog";
 import { addDashboardPanel, getActiveDashboard, removeDashboardPanel, state } from "@/lib/mockStore";
 
 const PANEL_VIEWS: Record<string, () => JSX.Element> = {
+  design_workflow_unified: () => <DesignWorkflowPanel />,
   publish_connect_to_wm: () => <PublishConnectToWmCard />,
   create_design: () => <CreateDesignCard onCreated={() => undefined} />,
   connect_file_browser: () => <ConnectPluginCard />,
@@ -20,13 +28,23 @@ const PANEL_VIEWS: Record<string, () => JSX.Element> = {
 };
 
 const FEATURE_PANELS = [
-  { id: "panel-publish", featureId: "publish_to_wm", name: "Publish to the field", description: "Send a Connect file to WorksManager devices", action: "publish_connect_to_wm" },
-  { id: "panel-create", featureId: "create_design", name: "Create a design", description: "Start a field design from shared project files", action: "create_design" },
-  { id: "panel-connect", featureId: "connect_files", name: "Browse project files", description: "Open shared Connect files for this job", action: "connect_file_browser" },
-  { id: "panel-wm", featureId: "wm_designs", name: "Field designs", description: "Review designs this job builds from", action: "worksmanager_design_list" },
-  { id: "panel-b2w", featureId: "b2w_estimates", name: "Estimates", description: "Review the estimate behind this bid", action: "b2westimate_list" },
-  { id: "panel-autobid", featureId: "autobid_bids", name: "Bids", description: "Track bid packages and due dates", action: "autobid_list" },
+  {
+    id: "panel-design-workflow",
+    featureId: "create_design",
+    name: "Create, compare, publish",
+    description: "Create a design, compare field designs, and publish in one flow",
+    action: DESIGN_WORKFLOW_ACTION,
+    bundleOnly: true,
+  },
+  { id: "panel-publish", featureId: "publish_to_wm", name: "Publish to the field", description: "Send a Connect file to WorksManager devices", action: "publish_connect_to_wm", bundleOnly: false },
+  { id: "panel-create", featureId: "create_design", name: "Create a design", description: "Start a field design from shared project files", action: "create_design", bundleOnly: false },
+  { id: "panel-connect", featureId: "connect_files", name: "Browse project files", description: "Open shared Connect files for this job", action: "connect_file_browser", bundleOnly: false },
+  { id: "panel-wm", featureId: "wm_designs", name: "Field designs", description: "Review designs this job builds from", action: "worksmanager_design_list", bundleOnly: false },
+  { id: "panel-b2w", featureId: "b2w_estimates", name: "Estimates", description: "Review the estimate behind this bid", action: "b2westimate_list", bundleOnly: false },
+  { id: "panel-autobid", featureId: "autobid_bids", name: "Bids", description: "Track bid packages and due dates", action: "autobid_list", bundleOnly: false },
 ];
+
+const DESIGN_BUNDLE_FEATURE_IDS = new Set<string>(DESIGN_WORKFLOW_FEATURES);
 
 function AddPanelModal(props: { allowedFeatureIds?: string[]; onClose: () => void }) {
   const [query, setQuery] = createSignal("");
@@ -39,7 +57,14 @@ function AddPanelModal(props: { allowedFeatureIds?: string[]; onClose: () => voi
   const panels = () => {
     const q = query().trim().toLowerCase();
     const scope = allowed();
-    const catalog = FEATURE_PANELS.filter((panel) => !scope || scope.has(panel.featureId));
+    const scopeIds = scope ? [...scope] : [];
+    const bundled = scopeIds.length ? isDesignWorkflowBundle(scopeIds) : false;
+    const catalog = FEATURE_PANELS.filter((panel) => {
+      if (scope && !scope.has(panel.featureId) && !panel.bundleOnly) return false;
+      if (panel.bundleOnly) return bundled && scope?.has("create_design");
+      if (bundled && DESIGN_BUNDLE_FEATURE_IDS.has(panel.featureId)) return false;
+      return !scope || scope.has(panel.featureId);
+    });
     const all = [...catalog.map((panel) => ({ ...panel, saved: false })), ...state.savedWorkflows.map((workflow) => ({ ...workflow, saved: true, featureId: "" }))];
     return all.filter((panel) => PANEL_VIEWS[panel.action] && `${panel.name} ${panel.description}`.toLowerCase().includes(q));
   };
@@ -101,7 +126,9 @@ export function DashboardCanvas(props: { allowedFeatureIds?: string[]; workProfi
   const allowedActions = createMemo(() => {
     const ids = props.allowedFeatureIds;
     if (!ids?.length) return null;
-    return new Set(ids.map((id) => FEATURE_ACTION[id]).filter(Boolean));
+    const actions = new Set(ids.map((id) => FEATURE_ACTION[id]).filter(Boolean));
+    if (isDesignWorkflowBundle(ids)) actions.add(DESIGN_WORKFLOW_ACTION);
+    return actions;
   });
 
   const visiblePanels = createMemo(() => {
@@ -150,8 +177,12 @@ export function DashboardCanvas(props: { allowedFeatureIds?: string[]; workProfi
                   const entry = Object.entries(FEATURE_ACTION).find(([, action]) => action === panel.action);
                   return entry ? featureById(entry[0]) : undefined;
                 };
+                const unified = panel.action === DESIGN_WORKFLOW_ACTION;
                 return (
-                  <section class="byop-message-card relative" aria-label={panel.name}>
+                  <section
+                    class={`byop-message-card relative${unified ? " byop-panel--full" : ""}`}
+                    aria-label={panel.name}
+                  >
                     <button
                       type="button"
                       class="byop-panel-remove"
@@ -161,8 +192,13 @@ export function DashboardCanvas(props: { allowedFeatureIds?: string[]; workProfi
                     >
                       ×
                     </button>
-                    <Show when={feature()}>
+                    <Show when={!unified && feature()}>
                       <p class="mb-3 text-xs font-semibold uppercase tracking-wide opacity-60">{feature()?.description}</p>
+                    </Show>
+                    <Show when={unified}>
+                      <p class="mb-3 text-xs font-semibold uppercase tracking-wide opacity-60">
+                        Create a field design, compare it with other designs, then publish to machines.
+                      </p>
                     </Show>
                     {PANEL_VIEWS[panel.action]?.()}
                   </section>

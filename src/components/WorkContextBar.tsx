@@ -1,9 +1,20 @@
 import { For, Show } from "solid-js";
-import { ACCOUNTS, PHASE_LABEL, accountById, projectById, projectsForAccount, solutionNames } from "@/lib/workProfileCatalog";
-import { focusAccount, focusProject, setWorkScope, workProfileState, workspaceSlice } from "@/lib/workProfiles";
+import {
+  ACCOUNTS,
+  PHASE_LABEL,
+  WIDGET_INTENT_LABEL,
+  accountById,
+  productLabelsForFeatures,
+  projectById,
+  projectsForAccount,
+  solutionNames,
+  widgetById,
+} from "@/lib/workProfileCatalog";
+import { activeWorkProfile, focusAccount, focusProject, setWorkScope, workProfileState, workspaceSlice } from "@/lib/workProfiles";
 
 export function WorkContextBar(props: { profileName: string }) {
   const slice = () => workspaceSlice();
+  const activityWidget = () => widgetById(activeWorkProfile()?.widgetId ?? "");
 
   return (
     <Show when={slice()}>
@@ -62,6 +73,20 @@ export function WorkContextBar(props: { profileName: string }) {
               {PHASE_LABEL[projectById(current().projectId)?.phase ?? "build"]} phase · {accountById(current().accountId)?.name}
             </p>
             <p class="mt-1 max-w-3xl text-sm opacity-75">{projectById(current().projectId)?.value}</p>
+            <Show when={activityWidget()}>
+              {(widget) => (
+                <p class="mt-2 max-w-3xl rounded-lg border border-[var(--modus-wc-color-base-200)] bg-[var(--modus-wc-color-base-100)] px-3 py-2 text-sm opacity-85">
+                  <span class="text-xs font-bold uppercase tracking-wide text-[var(--modus-wc-color-primary)]">
+                    {WIDGET_INTENT_LABEL[widget().intent]} · {widget().name}
+                  </span>
+                  <span class="mt-1 block opacity-75">{widget().valueStory}</span>
+                  <span class="byop-widget-footnote byop-widget-footnote--inline">
+                    Features from{" "}
+                    {productLabelsForFeatures(activeWorkProfile()?.featureIds ?? widget().featureIds).join(" · ")}
+                  </span>
+                </p>
+              )}
+            </Show>
             <Show when={!current().usingSavedWorkProfile}>
               <p class="mt-1 text-xs opacity-60">Tools suggested for this project phase. Open Work profiles to save your own mix, or Whole account for everything licensed.</p>
             </Show>

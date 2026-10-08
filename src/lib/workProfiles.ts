@@ -16,6 +16,8 @@ export interface WorkProfile {
   solutionIds: string[];
   productIds: PluginId[];
   featureIds: string[];
+  /** Activity widget template this profile started from, if any. */
+  widgetId?: string;
   createdAt: string;
 }
 
@@ -129,6 +131,29 @@ export function workspaceSlice() {
 }
 
 export { workProfileState };
+
+export function updateWorkProfile(id: string, input: Omit<WorkProfile, "id" | "userId" | "createdAt">) {
+  const index = workProfileState.profiles.findIndex((profile) => profile.id === id);
+  if (index < 0) return null;
+  const existing = workProfileState.profiles[index];
+  const features = input.featureIds;
+  const updated: WorkProfile = {
+    ...existing,
+    name: input.name.trim() || existing.name,
+    accountId: input.accountId,
+    projectId: input.projectId,
+    solutionIds: input.solutionIds,
+    featureIds: features,
+    productIds: productsUsedBy(features),
+  };
+  setWorkProfileState("profiles", index, updated);
+  if (workProfileState.activeId === id) {
+    setWorkProfileState({ scope: "project", focusAccountId: "", focusProjectId: "" });
+    openProfileDashboard(updated.name, updated.featureIds);
+  }
+  persist();
+  return updated;
+}
 
 export function saveWorkProfile(input: Omit<WorkProfile, "id" | "userId" | "createdAt">) {
   const profile: WorkProfile = {
