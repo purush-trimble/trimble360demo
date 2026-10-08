@@ -106,7 +106,7 @@ export function ChatWindow(props: {
             value={text()}
             onInput={(event) => setText(event.currentTarget.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) send();
+              if (event.key === "Enter") send();
             }}
           />
           <button
@@ -123,7 +123,7 @@ export function ChatWindow(props: {
           </button>
         </div>
         </div>
-        <p class="byop-composer-hint">Press Ctrl + Enter to send</p>
+        <p class="byop-composer-hint">Press Enter to send</p>
         <div class="mt-3 flex flex-wrap items-center gap-2" aria-label="Connected plugins">
           <span class="text-xs font-semibold opacity-60">Connected plugins:</span>
           <For each={props.connectedPlugins}>

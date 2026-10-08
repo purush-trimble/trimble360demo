@@ -81,13 +81,7 @@ export function AgentUIRenderer(props: {
         </div>
       );
     case "publish_connect_to_wm":
-      return (
-        <PublishConnectToWmCard
-          connectAccountId={props.action.connectAccountId}
-          wmAccountId={props.action.wmAccountId}
-          defaultPrompt="Publish a Connect design to WorksManager"
-        />
-      );
+      return <PublishConnectToWmCard defaultPrompt="Publish a Connect design to WorksManager" />;
     case "entitlement_upsell":
       return <EntitlementUpsellCard pluginId={props.action.pluginId} reason={props.action.reason} />;
     case "suggestions":

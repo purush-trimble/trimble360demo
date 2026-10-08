@@ -1,6 +1,6 @@
 import type { Entitlement, PluginId } from "@/lib/types";
 import { PLUGIN_CATALOG } from "@/lib/pluginCatalog";
-import { DEFAULT_PROMPTS, INTENTS } from "./intents";
+import { INTENTS } from "./intents";
 import type { AgentContext, AgentUIAction } from "./types";
 
 function isEntitled(entitlements: Entitlement[], pluginId: PluginId) {
@@ -13,10 +13,11 @@ function upsellFor(pluginId: PluginId, reason: "not_entitled" | "not_added"): Ag
 
 export function resolveIntent(text: string, context: AgentContext): { assistantText: string; uiAction: AgentUIAction } {
   const intent = INTENTS.find((item) => item.matches(text));
+  // ponytail: demo fallback — any unmatched prompt renders the publish widget; swap back to suggestions for real routing
   if (!intent) {
     return {
-      assistantText: "I can help with one of these actions:",
-      uiAction: { type: "suggestions", prompts: DEFAULT_PROMPTS },
+      assistantText: "Here's a widget to publish a Trimble Connect design to your WorksManager devices.",
+      uiAction: { type: "publish_connect_to_wm" },
     };
   }
 

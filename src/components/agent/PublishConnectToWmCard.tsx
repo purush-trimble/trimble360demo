@@ -1,46 +1,75 @@
-import { createSignal, For, onMount } from "solid-js";
+import { createEffect, createSignal, createUniqueId, For, Show } from "solid-js";
 import { ModusButton } from "@/components/modus/ModusButton";
-import { getConnectFiles, getProjects, publishConnectToWorksManager, saveWidget } from "@/lib/mockStore";
-import type { ConnectFile, WorksManagerProject } from "@/lib/types";
+import { saveWidget } from "@/lib/mockStore";
+import tcPublish from "@/mock-data/tc-publish.json";
+
+type TcDesign = { id: string; name: string; type: string };
+type TcProject = { id: string; name: string; designs: TcDesign[] };
+type TcDevice = { id: string; name: string; serial: string };
+
+function FileIcon() {
+  return (
+    <svg class="h-5 w-5 shrink-0 text-[var(--modus-wc-color-primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z" />
+      <path d="M14 3v5h5" />
+    </svg>
+  );
+}
+
+function DeviceIcon() {
+  return (
+    <svg class="h-5 w-5 shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <rect x="5" y="2.5" width="14" height="19" rx="2" />
+      <path d="M10 18.5h4" />
+    </svg>
+  );
+}
 
 export function PublishConnectToWmCard(props: {
-  connectAccountId: string;
-  wmAccountId: string;
+  projects?: TcProject[];
+  devices?: TcDevice[];
   defaultPrompt?: string;
 }) {
-  const [step, setStep] = createSignal<"files" | "project" | "review" | "done">("files");
-  const [files, setFiles] = createSignal<ConnectFile[]>([]);
-  const [projects, setProjects] = createSignal<WorksManagerProject[]>([]);
-  const [selectedFileIds, setSelectedFileIds] = createSignal<string[]>([]);
+  const uid = createUniqueId();
+  const projects = () => props.projects ?? tcPublish.projects;
+  const devices = () => props.devices ?? tcPublish.devices;
+
   const [projectId, setProjectId] = createSignal("");
-  const [designName, setDesignName] = createSignal("Published Connect design");
-  const [resultName, setResultName] = createSignal("");
+  const [designId, setDesignId] = createSignal("");
+  const [designOpen, setDesignOpen] = createSignal(false);
+  const [deviceIds, setDeviceIds] = createSignal<string[]>([]);
+  const [publishing, setPublishing] = createSignal(false);
+  const [published, setPublished] = createSignal(false);
   const [savedHint, setSavedHint] = createSignal("");
 
-  onMount(() => {
-    setFiles(getConnectFiles(props.connectAccountId));
-    const list = getProjects(props.wmAccountId);
-    setProjects(list);
-    setProjectId(list[0]?.id ?? "");
-  });
+  const designs = () => projects().find((p) => p.id === projectId())?.designs ?? [];
+  const design = () => designs().find((d) => d.id === designId());
+  const allSelected = () => deviceIds().length === devices().length;
+  const canPublish = () => !!design() && deviceIds().length > 0 && !publishing();
 
-  const toggleFile = (id: string) =>
-    setSelectedFileIds((items) => (items.includes(id) ? items.filter((x) => x !== id) : [...items, id]));
+  const toggleDevice = (id: string) =>
+    setDeviceIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  const toggleAll = () => setDeviceIds(allSelected() ? [] : devices().map((d) => d.id));
+
+  function selectProject(id: string) {
+    setProjectId(id);
+    setDesignId("");
+    setDeviceIds([]);
+    setPublished(false);
+  }
 
   function publish() {
-    const design = publishConnectToWorksManager({
-      projectId: projectId(),
-      sourceFileIds: selectedFileIds(),
-      designName: designName(),
-    });
-    setResultName(design.name);
-    setStep("done");
+    setPublishing(true);
+    setTimeout(() => {
+      setPublishing(false);
+      setPublished(true);
+    }, 800);
   }
 
   function saveAsWidget() {
     saveWidget({
-      name: "Publish Connect to WorksManager",
-      description: "Cross-product publish workflow",
+      name: "Publish design to WorksManager",
+      description: "Publish a Trimble Connect design to WorksManager devices",
       prompt: props.defaultPrompt ?? "Publish a Connect design to WorksManager",
       action: "publish_connect_to_wm",
       productIds: ["connect", "worksmanager"],
@@ -51,93 +80,142 @@ export function PublishConnectToWmCard(props: {
   return (
     <modus-wc-card class="block">
       <div class="p-5">
-        <p class="text-xs uppercase tracking-wider opacity-60">Cross-product workflow</p>
-        <h3 class="mb-4 text-lg font-semibold">Publish Connect design to WorksManager</h3>
+        <h3 class="text-lg font-semibold">Publish design to WorksManager</h3>
+        <hr class="my-4 border-[var(--modus-wc-color-base-200)]" />
 
-        {step() === "files" && (
-          <>
-            <p class="mb-3 text-sm opacity-80">Select Connect source file(s).</p>
-            <div class="divide-y divide-[var(--modus-wc-color-base-200)] rounded-lg border border-[var(--modus-wc-color-base-200)]">
-              <For each={files()}>
-                {(file) => (
-                  <label class="flex cursor-pointer items-center gap-3 p-3 hover:bg-[var(--modus-wc-color-base-200)]">
-                    <input type="checkbox" checked={selectedFileIds().includes(file.id)} onChange={() => toggleFile(file.id)} />
-                    <span class="flex-1 text-sm">
-                      <strong class="block">{file.name}</strong>
-                      <span class="text-xs opacity-70">{file.size}</span>
-                    </span>
-                  </label>
+        <label class="mb-1 block text-sm font-medium" for={`${uid}-project`}>
+          Select project
+        </label>
+        <select
+          id={`${uid}-project`}
+          class="byop-input w-full"
+          value={projectId()}
+          onChange={(e) => selectProject(e.currentTarget.value)}
+        >
+          <option value="" disabled>
+            Choose a Trimble Connect project
+          </option>
+          <For each={projects()}>{(p) => <option value={p.id}>{p.name}</option>}</For>
+        </select>
+
+        <span class="mb-1 mt-4 block text-sm font-medium" id={`${uid}-design`}>
+          Select design
+        </span>
+        <div
+          class="relative"
+          onFocusOut={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDesignOpen(false);
+          }}
+          onKeyDown={(e) => e.key === "Escape" && setDesignOpen(false)}
+        >
+          <button
+            type="button"
+            class="byop-input flex w-full items-center gap-2 text-left disabled:opacity-50"
+            aria-haspopup="listbox"
+            aria-expanded={designOpen()}
+            aria-labelledby={`${uid}-design`}
+            disabled={!projectId()}
+            onClick={() => setDesignOpen((o) => !o)}
+          >
+            <Show when={design()} fallback={<span class="flex-1 opacity-60">{projectId() ? "Choose a design" : "Select a project first"}</span>}>
+              {(d) => (
+                <>
+                  <FileIcon />
+                  <span class="flex-1 truncate text-sm">{d().name}</span>
+                  <span class="text-xs opacity-60">{d().type}</span>
+                </>
+              )}
+            </Show>
+            <span aria-hidden="true" class="opacity-60">▾</span>
+          </button>
+          <Show when={designOpen()}>
+            <ul
+              role="listbox"
+              aria-labelledby={`${uid}-design`}
+              class="absolute z-10 mt-1 max-h-64 w-full divide-y divide-[var(--modus-wc-color-base-200)] overflow-y-auto rounded border border-[var(--modus-wc-color-base-300)] bg-[var(--modus-wc-color-base-page)] shadow-md"
+            >
+              <For each={designs()}>
+                {(d) => (
+                  <li role="option" aria-selected={d.id === designId()}>
+                    <button
+                      type="button"
+                      class="byop-picker-option flex w-full items-center gap-3 text-left hover:bg-[var(--modus-wc-color-base-200)]"
+                      onClick={() => {
+                        setDesignId(d.id);
+                        setDesignOpen(false);
+                        setPublished(false);
+                      }}
+                    >
+                      <FileIcon />
+                      <span class="flex-1 truncate text-sm">{d.name}</span>
+                      <span class="text-xs opacity-60">{d.type}</span>
+                    </button>
+                  </li>
                 )}
               </For>
-            </div>
-            <div class="mt-4 flex justify-end">
-              <ModusButton disabled={!selectedFileIds().length} onClick={() => setStep("project")}>
-                Next: Choose project
-              </ModusButton>
-            </div>
-          </>
-        )}
+            </ul>
+          </Show>
+        </div>
 
-        {step() === "project" && (
-          <>
-            <label class="mb-1 block text-sm font-medium" for="wm-project">
-              WorksManager project
-            </label>
-            <select
-              id="wm-project"
-              class="byop-input w-full"
-              value={projectId()}
-              onChange={(e) => setProjectId(e.currentTarget.value)}
-            >
-              <For each={projects()}>{(p) => <option value={p.id}>{p.name}</option>}</For>
-            </select>
-            <label class="mb-1 mt-4 block text-sm font-medium" for="pub-name">
-              Design name
-            </label>
+        <div class="mt-4">
+        <fieldset
+          disabled={!design()}
+          class="min-w-0 disabled:opacity-50 [&:disabled_label]:cursor-not-allowed"
+        >
+          <legend class="mb-1 text-sm font-medium">
+            Select device
+            <Show when={!design()}>
+              <span class="ml-2 text-xs font-normal opacity-70">Select a design first</span>
+            </Show>
+          </legend>
+          <div class="rounded-lg border border-[var(--modus-wc-color-base-200)]">
+          <label class="flex cursor-pointer items-center gap-3 border-b border-[var(--modus-wc-color-base-200)] px-3 py-3 text-sm font-medium">
             <input
-              id="pub-name"
-              class="byop-input w-full"
-              value={designName()}
-              onInput={(e) => setDesignName(e.currentTarget.value)}
+              type="checkbox"
+              checked={allSelected()}
+              ref={(el) => createEffect(() => (el.indeterminate = deviceIds().length > 0 && !allSelected()))}
+              onChange={toggleAll}
             />
-            <div class="mt-4 flex justify-between">
-              <ModusButton variant="outlined" onClick={() => setStep("files")}>
-                Back
-              </ModusButton>
-              <ModusButton onClick={() => setStep("review")}>Review</ModusButton>
-            </div>
-          </>
-        )}
+            Select All
+          </label>
+          <div class="max-h-80 divide-y divide-[var(--modus-wc-color-base-200)] overflow-y-auto">
+            <For each={devices()}>
+              {(d) => (
+                <label class="flex cursor-pointer items-center gap-3 px-3 py-3 hover:bg-[var(--modus-wc-color-base-200)]">
+                  <input type="checkbox" checked={deviceIds().includes(d.id)} onChange={() => toggleDevice(d.id)} />
+                  <DeviceIcon />
+                  <span class="flex-1 text-sm">
+                    <strong class="block font-medium">{d.name}</strong>
+                    <span class="text-xs opacity-60">{d.serial}</span>
+                  </span>
+                </label>
+              )}
+            </For>
+          </div>
+          </div>
+        </fieldset>
+        </div>
 
-        {step() === "review" && (
-          <>
-            <div class="rounded-lg border border-[var(--modus-wc-color-base-200)] bg-[var(--modus-wc-color-base-200)] p-4 text-sm">
-              <p>
-                <strong>{selectedFileIds().length}</strong> Connect file(s) → project{" "}
-                <strong>{projects().find((p) => p.id === projectId())?.name ?? projectId()}</strong>
-              </p>
-              <p class="mt-2">Design name: {designName()}</p>
-            </div>
-            <div class="mt-4 flex justify-between">
-              <ModusButton variant="outlined" onClick={() => setStep("project")}>
-                Back
-              </ModusButton>
-              <ModusButton onClick={publish}>Confirm publish</ModusButton>
-            </div>
-          </>
-        )}
+        <Show when={published()}>
+          <div class="mt-4">
+            <modus-wc-alert
+              variant="success"
+              alert-title={`Published "${design()?.name}" to ${deviceIds().length} device(s) via WorksManager.`}
+            />
+          </div>
+        </Show>
 
-        {step() === "done" && (
-          <>
-            <modus-wc-alert variant="success" alert-title={`Published "${resultName()}" to WorksManager.`} />
-            <div class="mt-4 flex flex-wrap gap-2">
-              <ModusButton variant="outlined" onClick={saveAsWidget}>
-                Save as widget
-              </ModusButton>
-              {savedHint() && <span class="text-sm opacity-70">{savedHint()}</span>}
-            </div>
-          </>
-        )}
+        <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
+          <Show when={published()}>
+            {savedHint() && <span class="text-sm opacity-70">{savedHint()}</span>}
+            <ModusButton variant="outlined" onClick={saveAsWidget}>
+              Save as widget
+            </ModusButton>
+          </Show>
+          <ModusButton disabled={!canPublish()} onClick={publish}>
+            {publishing() ? "Publishing…" : "Publish"}
+          </ModusButton>
+        </div>
       </div>
     </modus-wc-card>
   );

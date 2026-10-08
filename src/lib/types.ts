@@ -77,6 +77,18 @@ export interface SavedWidget {
   updatedAt: string;
 }
 
+export interface DashboardWidget {
+  id: string;
+  name: string;
+  action: string;
+}
+
+export interface Dashboard {
+  id: string;
+  name: string;
+  widgets: DashboardWidget[];
+}
+
 export type ThemePreference = "light" | "dark" | "system";
 export type DensityPreference = "comfortable" | "compact";
 

@@ -1,12 +1,13 @@
 import { createMemo, createSignal, Show } from "solid-js";
 import { ChatWindow } from "@/components/ChatWindow";
+import { DashboardCanvas } from "@/components/dashboard/DashboardCanvas";
 import { LoginPage } from "@/components/LoginPage";
 import { ChatSidebar } from "@/components/layout/ChatSidebar";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { PluginsPage } from "@/components/plugins/PluginsPage";
 import { ModusButton } from "@/components/modus/ModusButton";
 import { isAuthenticated, signOut } from "@/lib/auth";
-import { isPluginConnected, listConnectablePluginIds, sendMessage, state } from "@/lib/mockStore";
+import { isPluginConnected, listConnectablePluginIds, state } from "@/lib/mockStore";
 
 type AppView = "workspace" | "plugins";
 
@@ -21,6 +22,7 @@ export default function App() {
 function Workspace() {
   const [chatMenuOpen, setChatMenuOpen] = createSignal(true);
   const [view, setView] = createSignal<AppView>("workspace");
+  const [tab, setTab] = createSignal<"chats" | "dashboard">("chats");
 
   const connectedPlugins = createMemo(() => listConnectablePluginIds().filter((id) => isPluginConnected(id)));
 
@@ -61,7 +63,8 @@ function Workspace() {
               connectedProducts={connectedPlugins()}
               showPluginsNav={showPluginsNav()}
               onOpenPlugins={() => setView("plugins")}
-              onRunWidgetPrompt={(prompt) => sendMessage(prompt, connectedPlugins())}
+              activeTab={tab()}
+              onTabChange={setTab}
             />
           </div>
         </Show>
@@ -73,6 +76,7 @@ function Workspace() {
             </div>
           }
         >
+          <Show when={tab() === "chats"} fallback={<DashboardCanvas />}>
           <main class="byop-view-enter flex min-w-0 flex-1 flex-col gap-4 p-4 lg:p-7">
             <div class="byop-main-header">
               <span class="byop-main-header-mark">+</span>
@@ -88,6 +92,7 @@ function Workspace() {
               onCreated={() => undefined}
             />
           </main>
+          </Show>
         </Show>
       </div>
     </div>

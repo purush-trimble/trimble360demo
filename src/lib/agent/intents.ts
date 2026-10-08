@@ -22,11 +22,7 @@ export const INTENTS: Intent[] = [
       /\b(publish|push|send)\b/i.test(text) &&
       (/\bconnect\b/i.test(text) || /\bdesign\b/i.test(text) || /\bfile\b/i.test(text)) &&
       (/\bworksmanager\b/i.test(text) || /\bwm\b/i.test(text) || /\bproject\b/i.test(text)),
-    respond: () => ({
-      type: "publish_connect_to_wm",
-      connectAccountId: "connect-demo",
-      wmAccountId: "wm-demo",
-    }),
+    respond: () => ({ type: "publish_connect_to_wm" }),
   },
   {
     requiresPlugins: ["worksmanager"],

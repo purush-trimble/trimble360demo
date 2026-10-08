@@ -1276,6 +1276,40 @@ select {
   padding: 0.8rem 1rem;
 }
 
+.byop-picker-option {
+  padding: 0.65rem 0.85rem;
+}
+
+.byop-widget-remove {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.6rem;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 999px;
+  background: var(--modus-wc-color-base-page);
+  color: var(--modus-wc-color-base-content);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--modus-wc-color-black) 18%, transparent);
+}
+
+.byop-widget-remove:hover {
+  color: var(--modus-wc-color-danger, #da212c);
+  border-color: currentColor;
+}
+
+.byop-canvas {
+  background-color: var(--modus-wc-color-base-page);
+  background-image: radial-gradient(var(--modus-wc-color-base-300) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 .byop-empty-state {
   border: 1px dashed var(--modus-wc-color-base-300);
   border-radius: 1rem;

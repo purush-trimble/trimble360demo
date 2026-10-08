@@ -6,7 +6,7 @@ export type AgentUIAction =
   | { type: "worksmanager_design_list"; accountId: string }
   | { type: "b2westimate_list"; accountId: string }
   | { type: "autobid_list"; accountId: string }
-  | { type: "publish_connect_to_wm"; connectAccountId: string; wmAccountId: string }
+  | { type: "publish_connect_to_wm" }
   | { type: "entitlement_upsell"; pluginId: PluginId; reason: "not_entitled" | "not_added" }
   | { type: "suggestions"; prompts: string[] }
   | { type: "text"; message: string };

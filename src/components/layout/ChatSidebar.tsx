@@ -1,10 +1,14 @@
 import { createSignal, For, Show } from "solid-js";
 
-import { SavedWidgetsPanel } from "@/components/layout/SavedWidgetsPanel";
-
 import {
 
   createConversation,
+
+  createDashboard,
+
+  deleteDashboard,
+
+  renameDashboard,
 
   deleteConversation,
 
@@ -15,6 +19,8 @@ import {
   searchConversations,
 
   selectConversation,
+
+  selectDashboard,
 
   state,
 
@@ -129,13 +135,18 @@ export function ChatSidebar(props: {
 
   onOpenPlugins: () => void;
 
-  onRunWidgetPrompt: (prompt: string) => void;
+  activeTab: "chats" | "dashboard";
+
+  onTabChange: (tab: "chats" | "dashboard") => void;
 
 }) {
 
   const [chatQuery, setChatQuery] = createSignal("");
   const [dashboardQuery, setDashboardQuery] = createSignal("");
-  const [activeTab, setActiveTab] = createSignal<"chats" | "dashboard">("chats");
+  const activeTab = () => props.activeTab;
+  const setActiveTab = props.onTabChange;
+  const dashboards = () =>
+    state.dashboards.filter((d) => d.name.toLowerCase().includes(dashboardQuery().trim().toLowerCase()));
 
   const [editingId, setEditingId] = createSignal<string | null>(null);
 
@@ -159,10 +170,18 @@ export function ChatSidebar(props: {
 
   function commitRename(id: string) {
 
+    if (editingId() !== id) return;
+
     renameConversation(id, editTitle());
 
     setEditingId(null);
 
+  }
+
+  function commitDashboardRename(id: string) {
+    if (editingId() !== id) return;
+    renameDashboard(id, editTitle());
+    setEditingId(null);
   }
 
 
@@ -242,8 +261,8 @@ export function ChatSidebar(props: {
                 <span class="byop-search-icon" aria-hidden="true"><IconSearch /></span>
                 <input
                   class="byop-input"
-                  aria-label="Search dashboard widgets"
-                  placeholder="Search dashboard"
+                  aria-label="Search dashboards"
+                  placeholder="Search dashboards"
                   value={dashboardQuery()}
                   onInput={(e) => setDashboardQuery(e.currentTarget.value)}
                 />
@@ -272,12 +291,70 @@ export function ChatSidebar(props: {
           <Show
             when={activeTab() === "chats"}
             fallback={
-              <section class="byop-sidebar-section byop-sidebar-section--dashboard flex min-h-0 flex-1 flex-col" aria-label="Dashboard widgets">
-                <SavedWidgetsPanel
-                  embedded
-                  searchQuery={dashboardQuery()}
-                  onRunPrompt={(prompt) => props.onRunWidgetPrompt(prompt)}
-                />
+              <section class="byop-sidebar-section byop-sidebar-section--dashboard flex min-h-0 flex-1 flex-col" aria-labelledby="sidebar-dashboards-heading">
+                <div class="byop-sidebar-section-head">
+                  <h2 id="sidebar-dashboards-heading" class="byop-sidebar-section-title">Dashboards</h2>
+                  <div class="byop-sidebar-section-actions">
+                    <span class="byop-sidebar-badge" aria-label={`${dashboards().length} dashboards`}>
+                      {dashboards().length}
+                    </span>
+                    <button type="button" class="byop-new-chat-icon" aria-label="New dashboard" title="New dashboard" onClick={() => createDashboard()}>
+                      <IconNewChat />
+                    </button>
+                  </div>
+                </div>
+                <div class="byop-sidebar-list min-h-0 flex-1 overflow-y-auto">
+                  <For each={dashboards()} fallback={<p class="byop-sidebar-empty-hint px-1">No dashboards match your search.</p>}>
+                    {(d) => (
+                      <div class={`byop-conversation group mb-1 rounded-lg px-2.5 py-2 ${state.activeDashboardId === d.id ? "is-active" : ""}`}>
+                        <div class="flex items-start gap-1">
+                          <Show
+                            when={editingId() === d.id}
+                            fallback={
+                              <button type="button" class="min-w-0 flex-1 text-left" onClick={() => selectDashboard(d.id)}>
+                                <span class="block truncate text-sm font-medium">{d.name}</span>
+                                <span class="text-xs opacity-60">{d.widgets.length} widget(s)</span>
+                              </button>
+                            }
+                          >
+                            <input
+                              class="byop-input w-full flex-1 text-sm"
+                              aria-label="Dashboard name"
+                              value={editTitle()}
+                              onInput={(e) => setEditTitle(e.currentTarget.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") commitDashboardRename(d.id);
+                                if (e.key === "Escape") setEditingId(null);
+                              }}
+                              onBlur={() => commitDashboardRename(d.id)}
+                              autofocus
+                            />
+                          </Show>
+                          <div class="byop-conversation-actions">
+                            <button
+                              type="button"
+                              class="byop-icon-button byop-icon-button--sm byop-icon-button--rename byop-tooltip-host"
+                              aria-label="Rename dashboard"
+                              onClick={() => startRename(d.id, d.name)}
+                            >
+                              <IconRename />
+                              <span class="byop-tooltip">Rename</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="byop-icon-button byop-icon-button--sm byop-icon-button--delete byop-tooltip-host"
+                              aria-label="Delete dashboard"
+                              onClick={() => deleteDashboard(d.id)}
+                            >
+                              <IconDelete />
+                              <span class="byop-tooltip">Delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </For>
+                </div>
               </section>
             }
           >
@@ -348,7 +425,16 @@ export function ChatSidebar(props: {
 
                       onInput={(e) => setEditTitle(e.currentTarget.value)}
 
-                      onKeyDown={(e) => e.key === "Enter" && commitRename(conv.id)}
+                      aria-label="Chat name"
+
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitRename(conv.id);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+
+                      onBlur={() => commitRename(conv.id)}
+
+                      autofocus
 
                     />
 

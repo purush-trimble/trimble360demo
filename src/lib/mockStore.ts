@@ -12,6 +12,7 @@ import type { ChatMessage } from "@/lib/agent/types";
 import { normalizeWorksManagerPlan, validateFchid } from "@/lib/pluginCatalog";
 import type {
   Conversation,
+  Dashboard,
   Design,
   Entitlement,
   PluginConnection,
@@ -34,7 +35,31 @@ type Persisted = {
   widgets: SavedWidget[];
   preferences: UserPreferences;
   pluginConnections: PluginConnection[];
+  dashboards?: Dashboard[];
+  activeDashboardId?: string;
 };
+
+function defaultDashboards(): Dashboard[] {
+  return [
+    {
+      id: "dashboard-1",
+      name: "Site Operations",
+      widgets: [
+        { id: "dw-1", name: "Publish design to WorksManager", action: "publish_connect_to_wm" },
+        { id: "dw-2", name: "WorksManager designs", action: "worksmanager_design_list" },
+      ],
+    },
+    {
+      id: "dashboard-2",
+      name: "Estimating & Bids",
+      widgets: [
+        { id: "dw-3", name: "B2W estimates", action: "b2westimate_list" },
+        { id: "dw-4", name: "AutoBid bids", action: "autobid_list" },
+      ],
+    },
+    { id: "dashboard-3", name: "Field Coordination", widgets: [] },
+  ];
+}
 
 const defaultPreferences: UserPreferences = { theme: "system", density: "comfortable", pluginsMenuVisible: true };
 
@@ -182,6 +207,8 @@ const [state, setState] = createStore({
   widgets: (persisted?.widgets ?? []) as SavedWidget[],
   preferences: normalizePreferences(persisted?.preferences),
   pluginConnections: persisted?.pluginConnections ?? defaultPluginConnections(),
+  dashboards: persisted?.dashboards ?? defaultDashboards(),
+  activeDashboardId: persisted?.activeDashboardId ?? "dashboard-1",
 });
 
 function snapshot(): Persisted {
@@ -194,6 +221,8 @@ function snapshot(): Persisted {
     widgets: state.widgets,
     preferences: state.preferences,
     pluginConnections: state.pluginConnections,
+    dashboards: state.dashboards,
+    activeDashboardId: state.activeDashboardId,
   };
 }
 
@@ -217,7 +246,52 @@ export function resetDemoStorage() {
     widgets: [],
     preferences: defaultPreferences,
     pluginConnections: defaultPluginConnections(),
+    dashboards: defaultDashboards(),
+    activeDashboardId: "dashboard-1",
   });
+}
+
+export function getActiveDashboard() {
+  return state.dashboards.find((d) => d.id === state.activeDashboardId) ?? state.dashboards[0];
+}
+
+export function selectDashboard(id: string) {
+  setState("activeDashboardId", id);
+  persist();
+}
+
+export function createDashboard() {
+  const dashboard: Dashboard = { id: `dashboard-${Date.now()}`, name: `Dashboard ${state.dashboards.length + 1}`, widgets: [] };
+  setState("dashboards", (items) => [...items, dashboard]);
+  selectDashboard(dashboard.id);
+}
+
+export function renameDashboard(id: string, name: string) {
+  const index = state.dashboards.findIndex((d) => d.id === id);
+  if (index < 0 || !name.trim()) return;
+  setState("dashboards", index, "name", name.trim());
+  persist();
+}
+
+export function deleteDashboard(id: string) {
+  setState("dashboards", (items) => items.filter((d) => d.id !== id));
+  if (!state.dashboards.length) return createDashboard();
+  if (state.activeDashboardId === id) setState("activeDashboardId", state.dashboards[0].id);
+  persist();
+}
+
+export function addDashboardWidget(input: { name: string; action: string }) {
+  const index = state.dashboards.findIndex((d) => d.id === getActiveDashboard()?.id);
+  if (index < 0) return;
+  setState("dashboards", index, "widgets", (widgets) => [...widgets, { id: `dw-${Date.now()}`, ...input }]);
+  persist();
+}
+
+export function removeDashboardWidget(widgetId: string) {
+  const index = state.dashboards.findIndex((d) => d.id === getActiveDashboard()?.id);
+  if (index < 0) return;
+  setState("dashboards", index, "widgets", (widgets) => widgets.filter((w) => w.id !== widgetId));
+  persist();
 }
 
 export function getPluginConnections() {
@@ -494,16 +568,4 @@ export function createDesign(input: { projectId: string; name?: string; sourceFi
   setState("designs", (designs) => [...designs, design]);
   persist();
   return design;
-}
-
-export function publishConnectToWorksManager(input: {
-  projectId: string;
-  sourceFileIds: string[];
-  designName?: string;
-}) {
-  return createDesign({
-    projectId: input.projectId,
-    name: input.designName,
-    sourceFileIds: input.sourceFileIds,
-  });
 }

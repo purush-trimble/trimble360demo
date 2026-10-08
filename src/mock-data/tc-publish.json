@@ -1,0 +1,43 @@
+{
+  "projects": [
+    {
+      "id": "tc-project-01",
+      "name": "North Ridge Highway",
+      "designs": [
+        { "id": "tc-design-01", "name": "North_Ridge_Surface.vcl", "type": "VCL" },
+        { "id": "tc-design-02", "name": "North_Ridge_Alignment.svd", "type": "SVD" },
+        { "id": "tc-design-03", "name": "North_Ridge_Design.svl", "type": "SVL" }
+      ]
+    },
+    {
+      "id": "tc-project-02",
+      "name": "Valley Interchange",
+      "designs": [
+        { "id": "tc-design-04", "name": "Valley_Ramp_A.dxf", "type": "DXF" },
+        { "id": "tc-design-05", "name": "Valley_Finished_Grade.ttm", "type": "TTM" }
+      ]
+    },
+    {
+      "id": "tc-project-03",
+      "name": "Harbor Logistics Yard",
+      "designs": [
+        { "id": "tc-design-06", "name": "Harbor_Pad_Subgrade.landxml", "type": "LandXML" },
+        { "id": "tc-design-07", "name": "Harbor_Drainage.vcl", "type": "VCL" }
+      ]
+    },
+    {
+      "id": "tc-project-04",
+      "name": "Cedar Creek Dam Rehab",
+      "designs": [{ "id": "tc-design-08", "name": "Cedar_Embankment.svd", "type": "SVD" }]
+    }
+  ],
+  "devices": [
+    { "id": "dev-01", "name": "CAT 336 Excavator", "serial": "EX-336-0142" },
+    { "id": "dev-02", "name": "CAT D6 Dozer", "serial": "DZ-D6-0877" },
+    { "id": "dev-03", "name": "Komatsu PC210 Excavator", "serial": "EX-210-0311" },
+    { "id": "dev-04", "name": "CAT 140 Motor Grader", "serial": "MG-140-0055" },
+    { "id": "dev-05", "name": "Trimble TSC7 Controller", "serial": "TSC7-2291" },
+    { "id": "dev-06", "name": "Trimble Siteworks Rover", "serial": "SW-R10-7781" },
+    { "id": "dev-07", "name": "Volvo EC220 Excavator", "serial": "EX-220-0904" }
+  ]
+}
