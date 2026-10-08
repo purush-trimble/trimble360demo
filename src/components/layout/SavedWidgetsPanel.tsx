@@ -54,6 +54,7 @@ export function sortedWidgets(): SavedWidget[] {
 
 export function SavedWidgetsPanel(props: {
   onRunPrompt: (prompt: string) => void;
+  searchQuery?: string;
   /** When set, only the first N widgets are shown (sidebar preview). */
   maxItems?: number;
   /** Compact rows for the sidebar; cards for the modal / full panel. */
@@ -63,7 +64,11 @@ export function SavedWidgetsPanel(props: {
 }) {
   const widgets = () => {
     const items = sortedWidgets();
-    return props.maxItems != null ? items.slice(0, props.maxItems) : items;
+    const query = props.searchQuery?.trim().toLowerCase();
+    const filtered = query
+      ? items.filter((widget) => `${widget.name} ${widget.description}`.toLowerCase().includes(query))
+      : items;
+    return props.maxItems != null ? filtered.slice(0, props.maxItems) : filtered;
   };
 
   const shellClass = () =>

@@ -242,8 +242,9 @@ select {
 
 .byop-sidebar > div:first-child {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .byop-sidebar .byop-input {
@@ -291,6 +292,52 @@ select {
   background: var(--modus-wc-color-base-100);
 }
 
+.byop-sidebar-tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex-shrink: 0;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--modus-wc-color-base-200);
+  background: var(--modus-wc-color-base-100);
+}
+
+.byop-sidebar-tabs button {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.5rem 0.65rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: color-mix(in srgb, var(--modus-wc-color-base-content) 58%, transparent);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.byop-sidebar-tabs button:hover,
+.byop-sidebar-tabs button.is-active {
+  color: var(--modus-wc-color-primary);
+}
+
+.byop-sidebar-tabs button.is-active {
+  border-bottom-color: var(--modus-wc-color-primary);
+}
+
+.byop-sidebar-tabs button:focus-visible {
+  outline: 2px solid var(--modus-wc-color-primary);
+  outline-offset: -2px;
+}
+
+.byop-sidebar-tab-tools {
+  flex-shrink: 0;
+  padding: 0 0.75rem;
+  background: var(--modus-wc-color-base-100);
+}
+
 .byop-sidebar-body {
   gap: 0;
   padding: 0.65rem 0.75rem 0.5rem;
@@ -318,6 +365,38 @@ select {
   gap: 0.5rem;
   margin-bottom: 0.5rem;
   padding-inline: 0.15rem;
+}
+
+.byop-sidebar-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.byop-new-chat-icon {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--modus-wc-color-base-content);
+  cursor: pointer;
+}
+
+.byop-new-chat-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.byop-new-chat-icon:hover {
+  background: var(--modus-wc-color-base-200);
 }
 
 .byop-sidebar-section-title {
@@ -1069,6 +1148,7 @@ select {
 .byop-sidebar-text-action:focus-visible,
 .byop-send-button:focus-visible,
 .byop-search-clear:focus-visible,
+.byop-new-chat-icon:focus-visible,
 .byop-icon-button:focus-visible,
 .byop-collapsed-action:focus-visible,
 .byop-composer-icon:focus-visible {

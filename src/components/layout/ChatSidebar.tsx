@@ -1,12 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 
-import { ModusButton } from "@/components/modus/ModusButton";
-import {
-  SavedWidgetsPanel,
-  sortedWidgets,
-  WIDGET_SIDEBAR_PREVIEW_COUNT,
-} from "@/components/layout/SavedWidgetsPanel";
-import { WidgetsLibraryModal } from "@/components/layout/WidgetsLibraryModal";
+import { SavedWidgetsPanel } from "@/components/layout/SavedWidgetsPanel";
 
 import {
 
@@ -84,6 +78,14 @@ function IconPlugins() {
 
 }
 
+function IconNewChat() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 
 
 export function ChatSidebar(props: {
@@ -102,8 +104,9 @@ export function ChatSidebar(props: {
 
 }) {
 
-  const [query, setQuery] = createSignal("");
-  const [widgetsModalOpen, setWidgetsModalOpen] = createSignal(false);
+  const [chatQuery, setChatQuery] = createSignal("");
+  const [dashboardQuery, setDashboardQuery] = createSignal("");
+  const [activeTab, setActiveTab] = createSignal<"chats" | "dashboard">("chats");
 
   const [editingId, setEditingId] = createSignal<string | null>(null);
 
@@ -111,9 +114,7 @@ export function ChatSidebar(props: {
 
 
 
-  const conversations = () => (query() ? searchConversations(query()) : listConversations());
-  const widgetCount = () => sortedWidgets().length;
-  const showWidgetViewMore = () => widgetCount() > WIDGET_SIDEBAR_PREVIEW_COUNT;
+  const conversations = () => (chatQuery() ? searchConversations(chatQuery()) : listConversations());
 
 
 
@@ -177,80 +178,85 @@ export function ChatSidebar(props: {
 
       >
 
-        <div class="byop-sidebar-header border-b border-[var(--modus-wc-color-base-200)] px-4 py-3.5">
-
-          <div class="byop-sidebar-actions">
-
-            <ModusButton class="byop-new-chat" onClick={() => createConversation()}>
-
-              <span class="byop-plus-icon">+</span>
-
-              New chat
-
-            </ModusButton>
-
-            <button type="button" class="byop-icon-button" aria-label="Close chat menu" title="Close chat menu" onClick={props.onToggleOpen}>
-
-              ×
-
-            </button>
-
-          </div>
-
-          <label class="byop-search mt-2.5">
-
-            <span class="byop-search-icon" aria-hidden="true">⌕</span>
-
-            <input
-
-              class="byop-input"
-
-              aria-label="Search chats"
-
-              placeholder="Search chats"
-
-              value={query()}
-
-              onInput={(e) => setQuery(e.currentTarget.value)}
-
-            />
-
-            <Show when={query()}>
-
-              <button type="button" class="byop-search-clear" aria-label="Clear search" onClick={() => setQuery("")}>×</button>
-
-            </Show>
-
-          </label>
-
+        <div class="byop-sidebar-tabs" role="tablist" aria-label="Sidebar content">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab() === "chats"}
+            classList={{ "is-active": activeTab() === "chats" }}
+            onClick={() => setActiveTab("chats")}
+          >
+            Chats
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab() === "dashboard"}
+            classList={{ "is-active": activeTab() === "dashboard" }}
+            onClick={() => setActiveTab("dashboard")}
+          >
+            Dashboard
+          </button>
         </div>
-
-        <div class="byop-sidebar-body min-h-0 flex-1 flex flex-col overflow-hidden">
-
-          <section class="byop-sidebar-section byop-sidebar-section--widgets" aria-labelledby="sidebar-widgets-heading">
-            <div class="byop-sidebar-section-head">
-              <h2 id="sidebar-widgets-heading" class="byop-sidebar-section-title">Saved widgets</h2>
-              <Show when={showWidgetViewMore()}>
-                <button type="button" class="byop-sidebar-text-action" onClick={() => setWidgetsModalOpen(true)}>
-                  View all
-                </button>
-              </Show>
-            </div>
-            <div class="byop-sidebar-section-content byop-sidebar-section-content--inset">
-              <SavedWidgetsPanel
-                compact
-                maxItems={WIDGET_SIDEBAR_PREVIEW_COUNT}
-                onRunPrompt={(prompt) => props.onRunWidgetPrompt(prompt)}
+        <div class="byop-sidebar-tab-tools">
+          <Show
+            when={activeTab() === "chats"}
+            fallback={
+              <label class="byop-search">
+                <span class="byop-search-icon" aria-hidden="true">⌕</span>
+                <input
+                  class="byop-input"
+                  aria-label="Search dashboard widgets"
+                  placeholder="Search dashboard"
+                  value={dashboardQuery()}
+                  onInput={(e) => setDashboardQuery(e.currentTarget.value)}
+                />
+                <Show when={dashboardQuery()}>
+                  <button type="button" class="byop-search-clear" aria-label="Clear dashboard search" onClick={() => setDashboardQuery("")}>×</button>
+                </Show>
+              </label>
+            }
+          >
+            <label class="byop-search">
+              <span class="byop-search-icon" aria-hidden="true">⌕</span>
+              <input
+                class="byop-input"
+                aria-label="Search chats"
+                placeholder="Search chats"
+                value={chatQuery()}
+                onInput={(e) => setChatQuery(e.currentTarget.value)}
               />
-            </div>
-          </section>
+              <Show when={chatQuery()}>
+                <button type="button" class="byop-search-clear" aria-label="Clear chat search" onClick={() => setChatQuery("")}>×</button>
+              </Show>
+            </label>
+          </Show>
+        </div>
+        <div class="byop-sidebar-body min-h-0 flex-1 flex flex-col overflow-hidden">
+          <Show
+            when={activeTab() === "chats"}
+            fallback={
+              <section class="byop-sidebar-section byop-sidebar-section--dashboard flex min-h-0 flex-1 flex-col" aria-label="Dashboard widgets">
+                <SavedWidgetsPanel
+                  embedded
+                  searchQuery={dashboardQuery()}
+                  onRunPrompt={(prompt) => props.onRunWidgetPrompt(prompt)}
+                />
+              </section>
+            }
+          >
 
           <section class="byop-sidebar-section byop-sidebar-section--chats flex min-h-0 flex-1 flex-col" aria-labelledby="sidebar-chats-heading">
             <div class="byop-sidebar-section-head">
               <h2 id="sidebar-chats-heading" class="byop-sidebar-section-title">Recent</h2>
-              <span class="byop-sidebar-badge" aria-label={`${conversations().length} conversations`}>
-                {conversations().length}
-              </span>
+              <div class="byop-sidebar-section-actions">
+                <span class="byop-sidebar-badge" aria-label={`${conversations().length} conversations`}>
+                  {conversations().length}
+                </span>
+                <button type="button" class="byop-new-chat-icon" aria-label="New chat" title="New chat" onClick={() => createConversation()}>
+                  <IconNewChat />
+                </button>
+              </div>
             </div>
 
             <div class="byop-sidebar-list min-h-0 flex-1 overflow-y-auto">
@@ -259,7 +265,7 @@ export function ChatSidebar(props: {
             when={conversations().length}
             fallback={
               <p class="byop-sidebar-empty-hint px-1">
-                {query() ? "No chats match your search." : "Start a new chat to see it here."}
+                {chatQuery() ? "No chats match your search." : "Start a new chat to see it here."}
               </p>
             }
           >
@@ -364,6 +370,7 @@ export function ChatSidebar(props: {
 
             </div>
           </section>
+          </Show>
 
         </div>
 
@@ -400,12 +407,6 @@ export function ChatSidebar(props: {
           </Show>
 
         </footer>
-
-        <WidgetsLibraryModal
-          open={widgetsModalOpen()}
-          onClose={() => setWidgetsModalOpen(false)}
-          onRunPrompt={props.onRunWidgetPrompt}
-        />
 
       </Show>
 
