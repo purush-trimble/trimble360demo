@@ -8,6 +8,7 @@ import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
 import autobidsSeed from "@/mock-data/autobids.json";
 import { currentUser } from "@/lib/currentUser";
 import { resolveIntent } from "@/lib/agent/intentRouter";
+import { dashboardPanelsForFeatures } from "@/lib/workProfileCatalog";
 import type { ChatMessage } from "@/lib/agent/types";
 import { normalizeWorksManagerPlan, validateFchid } from "@/lib/pluginCatalog";
 import type {
@@ -17,7 +18,7 @@ import type {
   Entitlement,
   PluginConnection,
   PluginId,
-  SavedWidget,
+  SavedWorkflow,
   UserPreferences,
   AutoBid,
   B2wEstimate,
@@ -32,7 +33,7 @@ type Persisted = {
   designs: Design[];
   conversations: Conversation[];
   activeConversationId: string;
-  widgets: SavedWidget[];
+  savedWorkflows: SavedWorkflow[];
   preferences: UserPreferences;
   pluginConnections: PluginConnection[];
   dashboards?: Dashboard[];
@@ -44,7 +45,7 @@ function defaultDashboards(): Dashboard[] {
     {
       id: "dashboard-1",
       name: "Site Operations",
-      widgets: [
+      panels: [
         { id: "dw-1", name: "Publish design to WorksManager", action: "publish_connect_to_wm" },
         { id: "dw-2", name: "WorksManager designs", action: "worksmanager_design_list" },
       ],
@@ -52,13 +53,19 @@ function defaultDashboards(): Dashboard[] {
     {
       id: "dashboard-2",
       name: "Estimating & Bids",
-      widgets: [
+      panels: [
         { id: "dw-3", name: "B2W estimates", action: "b2westimate_list" },
         { id: "dw-4", name: "AutoBid bids", action: "autobid_list" },
       ],
     },
-    { id: "dashboard-3", name: "Field Coordination", widgets: [] },
+    { id: "dashboard-3", name: "Field Coordination", panels: [] },
   ];
+}
+
+type LegacyDashboard = Dashboard & { widgets?: Dashboard["panels"] };
+
+function normalizeDashboard(raw: LegacyDashboard): Dashboard {
+  return { id: raw.id, name: raw.name, panels: raw.panels ?? raw.widgets ?? [] };
 }
 
 const defaultPreferences: UserPreferences = { theme: "system", density: "comfortable", pluginsMenuVisible: true };
@@ -123,7 +130,7 @@ function migrateFromV1(): Persisted | null {
       designs: old.designs,
       conversations,
       activeConversationId: activeId,
-      widgets: [],
+      savedWorkflows: [],
       preferences: defaultPreferences,
       pluginConnections: defaultPluginConnections(),
     };
@@ -140,7 +147,7 @@ function migratePluginId(id: string): PluginId {
 function normalizeEntitlementRow(e: Entitlement): Entitlement {
   const pluginId = migratePluginId(e.pluginId as string);
   const plan = pluginId === "worksmanager" ? normalizeWorksManagerPlan(e.plan) : e.plan;
-  const subscriptionAccountId = e.pluginId === "workorders" ? "b2w-demo" : e.subscriptionAccountId;
+  const subscriptionAccountId = (e.pluginId as string) === "workorders" ? "b2w-demo" : e.subscriptionAccountId;
   return { ...e, pluginId, plan, subscriptionAccountId };
 }
 
@@ -162,12 +169,14 @@ function mergePluginConnectionsFromDefaults(stored: PluginConnection[]): PluginC
   return merged;
 }
 
-function normalizePersisted(raw: Persisted): Persisted {
+function normalizePersisted(raw: Persisted & { widgets?: SavedWorkflow[]; dashboards?: LegacyDashboard[] }): Persisted {
   const entitlements = mergeEntitlementsFromSeed((raw.entitlements ?? []).map(normalizeEntitlementRow));
   const pluginConnections = mergePluginConnectionsFromDefaults(raw.pluginConnections ?? []);
   return {
     ...raw,
     entitlements,
+    savedWorkflows: raw.savedWorkflows ?? raw.widgets ?? [],
+    dashboards: (raw.dashboards ?? defaultDashboards()).map(normalizeDashboard),
     pluginConnections: pluginConnections.length ? pluginConnections : defaultPluginConnections(),
     preferences: normalizePreferences(raw.preferences),
   };
@@ -204,7 +213,7 @@ const [state, setState] = createStore({
   autobids: autobidsSeed as AutoBid[],
   conversations: initialConv,
   activeConversationId: persisted?.activeConversationId ?? initialConv[0]?.id ?? "",
-  widgets: (persisted?.widgets ?? []) as SavedWidget[],
+  savedWorkflows: (persisted?.savedWorkflows ?? []) as SavedWorkflow[],
   preferences: normalizePreferences(persisted?.preferences),
   pluginConnections: persisted?.pluginConnections ?? defaultPluginConnections(),
   dashboards: persisted?.dashboards ?? defaultDashboards(),
@@ -218,7 +227,7 @@ function snapshot(): Persisted {
     designs: state.designs,
     conversations: state.conversations,
     activeConversationId: state.activeConversationId,
-    widgets: state.widgets,
+    savedWorkflows: state.savedWorkflows,
     preferences: state.preferences,
     pluginConnections: state.pluginConnections,
     dashboards: state.dashboards,
@@ -243,7 +252,7 @@ export function resetDemoStorage() {
     designs: worksmanagerDesignsSeed as Design[],
     conversations,
     activeConversationId: activeId,
-    widgets: [],
+    savedWorkflows: [],
     preferences: defaultPreferences,
     pluginConnections: defaultPluginConnections(),
     dashboards: defaultDashboards(),
@@ -260,8 +269,24 @@ export function selectDashboard(id: string) {
   persist();
 }
 
+/** Opens a job view dashboard that mirrors the work profile's feature mix. */
+export function openProfileDashboard(name: string, featureIds: string[]) {
+  const tiles = dashboardPanelsForFeatures(featureIds);
+  const dashboard: Dashboard = {
+    id: `dashboard-${Date.now()}`,
+    name: name.trim() || "Job view",
+    panels: tiles.map((tile, index) => ({
+      id: `dw-${Date.now()}-${index}`,
+      name: tile.name,
+      action: tile.action,
+    })),
+  };
+  setState("dashboards", (items) => [dashboard, ...items]);
+  selectDashboard(dashboard.id);
+}
+
 export function createDashboard() {
-  const dashboard: Dashboard = { id: `dashboard-${Date.now()}`, name: `Dashboard ${state.dashboards.length + 1}`, widgets: [] };
+  const dashboard: Dashboard = { id: `dashboard-${Date.now()}`, name: `Job view ${state.dashboards.length + 1}`, panels: [] };
   setState("dashboards", (items) => [...items, dashboard]);
   selectDashboard(dashboard.id);
 }
@@ -280,17 +305,17 @@ export function deleteDashboard(id: string) {
   persist();
 }
 
-export function addDashboardWidget(input: { name: string; action: string }) {
+export function addDashboardPanel(input: { name: string; action: string }) {
   const index = state.dashboards.findIndex((d) => d.id === getActiveDashboard()?.id);
   if (index < 0) return;
-  setState("dashboards", index, "widgets", (widgets) => [...widgets, { id: `dw-${Date.now()}`, ...input }]);
+  setState("dashboards", index, "panels", (panels) => [...panels, { id: `dw-${Date.now()}`, ...input }]);
   persist();
 }
 
-export function removeDashboardWidget(widgetId: string) {
+export function removeDashboardPanel(panelId: string) {
   const index = state.dashboards.findIndex((d) => d.id === getActiveDashboard()?.id);
   if (index < 0) return;
-  setState("dashboards", index, "widgets", (widgets) => widgets.filter((w) => w.id !== widgetId));
+  setState("dashboards", index, "panels", (panels) => panels.filter((panel) => panel.id !== panelId));
   persist();
 }
 
@@ -455,7 +480,7 @@ export function searchConversations(query: string) {
   return listConversations().filter((c) => c.title.toLowerCase().includes(q));
 }
 
-export function sendMessage(text: string, mountedPlugins: PluginId[]) {
+export function sendMessage(text: string, mountedPlugins: PluginId[], allowedFeatureIds?: string[]) {
   const trimmed = text.trim();
   if (!trimmed) return null;
   let conversationId = state.activeConversationId;
@@ -467,6 +492,7 @@ export function sendMessage(text: string, mountedPlugins: PluginId[]) {
   const result = resolveIntent(trimmed, {
     mountedPlugins: new Set(mountedPlugins),
     entitlements,
+    allowedFeatureIds: allowedFeatureIds?.length ? new Set(allowedFeatureIds) : undefined,
   });
   const now = new Date().toISOString();
   const userMessage: ChatMessage = { id: `message-${Date.now()}`, role: "user", text: trimmed, createdAt: now };
@@ -494,7 +520,7 @@ export function sendMessage(text: string, mountedPlugins: PluginId[]) {
   return { userMessage, assistantMessage };
 }
 
-export function saveWidget(input: {
+export function saveWorkflow(input: {
   name: string;
   description: string;
   prompt: string;
@@ -502,8 +528,8 @@ export function saveWidget(input: {
   productIds: PluginId[];
 }) {
   const now = new Date().toISOString();
-  const widget: SavedWidget = {
-    id: `widget-${Date.now()}`,
+  const workflow: SavedWorkflow = {
+    id: `workflow-${Date.now()}`,
     name: input.name.trim() || "Saved workflow",
     description: input.description,
     prompt: input.prompt,
@@ -513,21 +539,21 @@ export function saveWidget(input: {
     createdAt: now,
     updatedAt: now,
   };
-  setState("widgets", (items) => [widget, ...items]);
+  setState("savedWorkflows", (items) => [workflow, ...items]);
   persist();
-  return widget;
+  return workflow;
 }
 
-export function toggleWidgetFavorite(id: string) {
-  const index = state.widgets.findIndex((w) => w.id === id);
+export function toggleWorkflowFavorite(id: string) {
+  const index = state.savedWorkflows.findIndex((w) => w.id === id);
   if (index < 0) return;
-  setState("widgets", index, "favorite", !state.widgets[index].favorite);
-  setState("widgets", index, "updatedAt", new Date().toISOString());
+  setState("savedWorkflows", index, "favorite", !state.savedWorkflows[index].favorite);
+  setState("savedWorkflows", index, "updatedAt", new Date().toISOString());
   persist();
 }
 
-export function deleteWidget(id: string) {
-  setState("widgets", (items) => items.filter((w) => w.id !== id));
+export function deleteWorkflow(id: string) {
+  setState("savedWorkflows", (items) => items.filter((w) => w.id !== id));
   persist();
 }
 

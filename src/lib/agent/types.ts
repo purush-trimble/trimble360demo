@@ -22,4 +22,6 @@ export interface ChatMessage {
 export interface AgentContext {
   mountedPlugins: Set<PluginId>;
   entitlements: Entitlement[];
+  /** When set, only intents for these catalog feature ids are allowed. */
+  allowedFeatureIds?: Set<string>;
 }

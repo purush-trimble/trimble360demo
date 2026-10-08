@@ -238,7 +238,7 @@ export function ChatSidebar(props: {
               classList={{ "is-active": activeTab() === "dashboard" }}
               onClick={() => setActiveTab("dashboard")}
             >
-              Dashboard
+              Job view
             </button>
           </div>
           <div class="byop-sidebar-top-actions">
@@ -313,7 +313,7 @@ export function ChatSidebar(props: {
                             fallback={
                               <button type="button" class="min-w-0 flex-1 text-left" onClick={() => selectDashboard(d.id)}>
                                 <span class="block truncate text-sm font-medium">{d.name}</span>
-                                <span class="text-xs opacity-60">{d.widgets.length} widget(s)</span>
+                                <span class="text-xs opacity-60">{d.panels.length} panel(s)</span>
                               </button>
                             }
                           >
