@@ -10,6 +10,7 @@ export const DEFAULT_PROMPTS = [
 ];
 
 type Intent = {
+  featureId: string;
   requiresPlugins: ("connect" | "worksmanager" | "b2westimate" | "autobid")[];
   matches: (text: string) => boolean;
   respond: (_context: AgentContext) => AgentUIAction;
@@ -17,6 +18,7 @@ type Intent = {
 
 export const INTENTS: Intent[] = [
   {
+    featureId: "publish_to_wm",
     requiresPlugins: ["connect", "worksmanager"],
     matches: (text) =>
       /\b(publish|push|send)\b/i.test(text) &&
@@ -25,27 +27,32 @@ export const INTENTS: Intent[] = [
     respond: () => ({ type: "publish_connect_to_wm" }),
   },
   {
+    featureId: "create_design",
     requiresPlugins: ["worksmanager"],
     matches: (text) => /\b(create|new|make)\b.*\bdesign\b/i.test(text),
     respond: () => ({ type: "create_design", accountId: "wm-demo", suggestedName: "North Ridge imported design" }),
   },
   {
+    featureId: "connect_files",
     requiresPlugins: ["connect"],
     matches: (text) => /(connect).*(file|browse|list)|\b(list|show|browse)\b.*\bfiles?\b/i.test(text),
     respond: () => ({ type: "connect_file_browser", accountId: "connect-demo" }),
   },
   {
+    featureId: "wm_designs",
     requiresPlugins: ["worksmanager"],
     matches: (text) => /(show|list|worksmanager).*\bdesigns?\b/i.test(text),
     respond: () => ({ type: "worksmanager_design_list", accountId: "wm-demo" }),
   },
   {
+    featureId: "b2w_estimates",
     requiresPlugins: ["b2westimate"],
     matches: (text) =>
       /(show|list|view).*\b(estimates?|b2w)\b|\b(b2w|estimate)\b.*(show|list|view)/i.test(text),
     respond: () => ({ type: "b2westimate_list", accountId: "b2w-demo" }),
   },
   {
+    featureId: "autobid_bids",
     requiresPlugins: ["autobid"],
     matches: (text) =>
       /(show|list|view).*\b(bids?|autobid)\b|\b(autobid|bids?)\b.*(show|list|view)/i.test(text),

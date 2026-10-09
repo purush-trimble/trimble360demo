@@ -65,7 +65,8 @@ export interface Conversation {
   updatedAt: string;
 }
 
-export interface SavedWidget {
+/** Agent workflow pinned from chat for quick reuse. */
+export interface SavedWorkflow {
   id: string;
   name: string;
   description: string;
@@ -77,7 +78,8 @@ export interface SavedWidget {
   updatedAt: string;
 }
 
-export interface DashboardWidget {
+/** One product feature rendered on the job dashboard. */
+export interface DashboardPanel {
   id: string;
   name: string;
   action: string;
@@ -86,7 +88,7 @@ export interface DashboardWidget {
 export interface Dashboard {
   id: string;
   name: string;
-  widgets: DashboardWidget[];
+  panels: DashboardPanel[];
 }
 
 export type ThemePreference = "light" | "dark" | "system";

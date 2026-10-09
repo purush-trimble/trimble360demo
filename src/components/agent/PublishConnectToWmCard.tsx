@@ -1,6 +1,6 @@
 import { createEffect, createSignal, createUniqueId, For, Show } from "solid-js";
 import { ModusButton } from "@/components/modus/ModusButton";
-import { saveWidget } from "@/lib/mockStore";
+import { saveWorkflow } from "@/lib/mockStore";
 import tcPublish from "@/mock-data/tc-publish.json";
 
 type TcDesign = { id: string; name: string; type: string };
@@ -66,15 +66,15 @@ export function PublishConnectToWmCard(props: {
     }, 800);
   }
 
-  function saveAsWidget() {
-    saveWidget({
+  function saveAsWorkflow() {
+    saveWorkflow({
       name: "Publish design to WorksManager",
       description: "Publish a Trimble Connect design to WorksManager devices",
       prompt: props.defaultPrompt ?? "Publish a Connect design to WorksManager",
       action: "publish_connect_to_wm",
       productIds: ["connect", "worksmanager"],
     });
-    setSavedHint("Widget saved.");
+    setSavedHint("Workflow saved.");
   }
 
   return (
@@ -208,8 +208,8 @@ export function PublishConnectToWmCard(props: {
         <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
           <Show when={published()}>
             {savedHint() && <span class="text-sm opacity-70">{savedHint()}</span>}
-            <ModusButton variant="outlined" onClick={saveAsWidget}>
-              Save as widget
+            <ModusButton variant="outlined" onClick={saveAsWorkflow}>
+              Save workflow
             </ModusButton>
           </Show>
           <ModusButton disabled={!canPublish()} onClick={publish}>

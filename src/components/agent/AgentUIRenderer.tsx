@@ -6,7 +6,7 @@ import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { CreateDesignCard } from "./CreateDesignCard";
 import { EntitlementUpsellCard } from "./EntitlementUpsellCard";
 import { PublishConnectToWmCard } from "./PublishConnectToWmCard";
-import { SaveWidgetButton } from "./SaveWidgetButton";
+import { SaveWorkflowButton } from "./SaveWorkflowButton";
 import { SuggestionChips } from "./SuggestionChips";
 
 export function AgentUIRenderer(props: {
@@ -19,7 +19,7 @@ export function AgentUIRenderer(props: {
       return (
         <div class="space-y-2">
           <CreateDesignCard onCreated={props.onCreated} />
-          <SaveWidgetButton
+          <SaveWorkflowButton
             name="Create design"
             description="Import from Connect and create a WorksManager design"
             prompt="create a design"
@@ -32,7 +32,7 @@ export function AgentUIRenderer(props: {
       return (
         <div class="space-y-2">
           <ConnectPluginCard />
-          <SaveWidgetButton
+          <SaveWorkflowButton
             name="Browse Connect files"
             description="List and select Connect project files"
             prompt="show my Connect files"
@@ -45,7 +45,7 @@ export function AgentUIRenderer(props: {
       return (
         <div class="space-y-2">
           <WorksManagerPluginCard />
-          <SaveWidgetButton
+          <SaveWorkflowButton
             name="WorksManager designs"
             description="View designs in a WorksManager project"
             prompt="show my designs"
@@ -58,7 +58,7 @@ export function AgentUIRenderer(props: {
       return (
         <div class="space-y-2">
           <B2wEstimatePluginCard />
-          <SaveWidgetButton
+          <SaveWorkflowButton
             name="B2W estimates"
             description="View construction estimates"
             prompt="show my B2W estimates"
@@ -71,7 +71,7 @@ export function AgentUIRenderer(props: {
       return (
         <div class="space-y-2">
           <AutoBidPluginCard />
-          <SaveWidgetButton
+          <SaveWorkflowButton
             name="AutoBid bids"
             description="View and track competitive bids"
             prompt="show my AutoBid bids"

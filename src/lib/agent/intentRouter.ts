@@ -11,13 +11,25 @@ function upsellFor(pluginId: PluginId, reason: "not_entitled" | "not_added"): Ag
   return { type: "entitlement_upsell", pluginId, reason };
 }
 
-export function resolveIntent(text: string, context: AgentContext): { assistantText: string; uiAction: AgentUIAction } {
+export function resolveIntent(text: string, context: AgentContext): { assistantText: string; uiAction?: AgentUIAction } {
   const intent = INTENTS.find((item) => item.matches(text));
-  // ponytail: demo fallback — any unmatched prompt renders the publish widget; swap back to suggestions for real routing
+  // ponytail: demo fallback — any unmatched prompt renders publish panel; swap back to suggestions for real routing
   if (!intent) {
+    const fallback = INTENTS.find((item) => item.featureId === "publish_to_wm");
+    if (context.allowedFeatureIds && fallback && !context.allowedFeatureIds.has(fallback.featureId)) {
+      return {
+        assistantText: "I did not recognize that. Use one of the quick actions below — they match your work profile.",
+      };
+    }
     return {
-      assistantText: "Here's a widget to publish a Trimble Connect design to your WorksManager devices.",
+      assistantText: "Here's how to publish a Trimble Connect design to your WorksManager devices.",
       uiAction: { type: "publish_connect_to_wm" },
+    };
+  }
+
+  if (context.allowedFeatureIds && !context.allowedFeatureIds.has(intent.featureId)) {
+    return {
+      assistantText: "That action is not part of your current work profile. Open Work profiles to add it, or use one of the quick actions below.",
     };
   }
 
