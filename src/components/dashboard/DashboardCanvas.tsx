@@ -13,8 +13,8 @@ import { getActiveSavedWorkflow, openSavedWorkflowInChat, state } from "@/lib/mo
 const PANEL_VIEWS: Record<string, () => JSX.Element> = {
   design_workflow_unified: () => <DesignWorkflowPanel />,
   publish_connect_to_wm: () => <PublishConnectToWmCard />,
-  create_design: () => <CreateVclDesignCard onCreated={() => undefined} />,
-  create_vcl_design: () => <CreateVclDesignCard onCreated={() => undefined} />,
+  create_design: () => <CreateVclDesignCard onCreated={() => undefined} initialConfig={getActiveSavedWorkflow()?.config} restart />,
+  create_vcl_design: () => <CreateVclDesignCard onCreated={() => undefined} initialConfig={getActiveSavedWorkflow()?.config} restart />,
   connect_file_browser: () => <ConnectPluginCard />,
   worksmanager_design_list: () => {
     const saved = getActiveSavedWorkflow();
