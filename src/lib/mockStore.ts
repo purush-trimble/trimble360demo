@@ -519,6 +519,11 @@ export function createConversation() {
   return conversation;
 }
 
+export function clearChatHistory() {
+  setState({ messages: [], conversations: [], activeConversationId: "" });
+  createConversation();
+}
+
 export function selectConversation(id: string) {
   if (!state.conversations.some((c) => c.id === id)) return;
   setState("activeConversationId", id);

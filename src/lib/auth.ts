@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { demoUsers, setActiveUser } from "@/lib/currentUser";
+import { clearChatHistory } from "@/lib/mockStore";
 
 const LOCAL_KEY = "trimble360-auth";
 const SESSION_KEY = "trimble360-auth-session";
@@ -53,5 +54,6 @@ export function signOut() {
   } catch {
     // Ignore storage failures on sign-out.
   }
+  clearChatHistory();
   setAuthenticated(false);
 }
