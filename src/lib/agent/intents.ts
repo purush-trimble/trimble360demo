@@ -1,4 +1,4 @@
-import type { DesignListLayout } from "@/lib/types";
+import type { DesignListLayout, VclStepOrder } from "@/lib/types";
 import type { AgentUIAction } from "./types";
 
 export const DEFAULT_PROMPTS = [  "Publish a Connect design to WorksManager",
@@ -76,8 +76,24 @@ export function parseDesignLayout(text: string, current: DesignListLayout = "tab
   return current === "cards" ? "table" : "cards";
 }
 
+/** Chat edit for a VCL widget's stepper: "first step should be project select then file source". */
+export function parseVclStepOrder(text: string): VclStepOrder | undefined {
+  const project = text.search(/\bprojects?\b/i);
+  const source = text.search(/\b(files?|source)\b/i);
+  if (project < 0 || source < 0 || !/\b(first|before|after|then|order|steps?|stepper|flow|start)\b/i.test(text)) return;
+  return (project < source) !== /\bafter\b/i.test(text) ? "project-first" : "source-first";
+}
+
 if (import.meta.env.DEV) {
   if (parseDesignLayout("change to a card layout") !== "cards" || parseDesignLayout("show as a table") !== "table" || parseDesignLayout("change to a new layout", "table") !== "cards" || parseDesignLayout("show my designs")) {
     console.error("parseDesignLayout self-check failed");
+  }
+  if (
+    parseVclStepOrder("first step should be project select then file source") !== "project-first" ||
+    parseVclStepOrder("put the file source after project") !== "project-first" ||
+    parseVclStepOrder("go back to file first then project") !== "source-first" ||
+    parseVclStepOrder("create a VCL design")
+  ) {
+    console.error("parseVclStepOrder self-check failed");
   }
 }

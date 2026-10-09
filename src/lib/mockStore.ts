@@ -7,7 +7,7 @@ import worksmanagerProjectsSeed from "@/mock-data/worksmanager-projects.json";
 import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
 import autobidsSeed from "@/mock-data/autobids.json";
 import devicesSeed from "@/mock-data/devices.json";
-import { parseDesignLayout } from "@/lib/agent/intents";
+import { parseDesignLayout, parseVclStepOrder } from "@/lib/agent/intents";
 import { resolveIntent } from "@/lib/agent/intentRouter";
 import { currentUser, demoUsers, userName } from "@/lib/currentUser";
 import { dashboardPanelsForFeatures } from "@/lib/workProfileCatalog";
@@ -90,12 +90,28 @@ function findDesignsEditContext(): { projectId?: string; workflowId?: string; la
   return { layout: "table" };
 }
 
+function findVclWidgetInConversation() {
+  for (const id of [...(getActiveConversation()?.messageIds ?? [])].reverse()) {
+    const action = state.messages.find((message) => message.id === id)?.uiAction;
+    if (action?.type === "create_vcl_design") return action;
+  }
+}
+
 function persistProjectOnSavedWorkflow(workflowId: string | undefined, projectId: string) {
   if (!workflowId) return;
   const index = state.savedWorkflows.findIndex((workflow) => workflow.id === workflowId);
   if (index < 0) return;
   setState("savedWorkflows", index, "config", { ...state.savedWorkflows[index].config, projectId });
   setState("savedWorkflows", index, "updatedAt", new Date().toISOString());
+}
+
+export const AGENT_WORKING_STAGES = ["Thinking", "Querying your saved widget", "Drafting the updated flow"];
+
+function scheduleAgentWorking(assistantMessageId: string, resultText: string, result: ChatMessage["uiAction"]) {
+  AGENT_WORKING_STAGES.forEach((_, stage) => {
+    if (stage) setTimeout(() => replaceAssistantMessage(assistantMessageId, "Working on it…", { type: "agent_working", stage, resultText, result }), stage * 900);
+  });
+  setTimeout(() => replaceAssistantMessage(assistantMessageId, resultText, result), AGENT_WORKING_STAGES.length * 900);
 }
 
 function scheduleProjectPicker(assistantMessageId: string, targetAction: ProjectScopedAction) {
@@ -237,6 +253,7 @@ function buildInitialConversation(messages: ChatMessage[]): { conversations: Con
 
 function recoverStagedMessage(message: ChatMessage): ChatMessage {
   const action = message.uiAction;
+  if (action?.type === "agent_working") return { ...message, text: action.resultText, uiAction: action.result };
   if (action?.type === "project_loading") {
     return {
       ...message,
@@ -555,7 +572,21 @@ export function sendMessage(text: string) {
   }
   const designsContext = findDesignsEditContext();
   const layoutRequest = parseDesignLayout(trimmed, designsContext.layout);
-  const result = layoutRequest && designsContext.projectId
+  const vclWidget = findVclWidgetInConversation();
+  const vclStepOrder = vclWidget ? parseVclStepOrder(trimmed) : undefined;
+  const result = vclWidget && vclStepOrder
+    ? {
+      assistantText: vclStepOrder === "project-first"
+        ? "Updated the flow: pick the project first, then the file source. Save changes to keep this flow."
+        : "Updated the flow: pick the file source first, then the project. Save changes to keep this flow.",
+      uiAction: {
+        type: "create_vcl_design" as const,
+        workflowId: vclWidget.workflowId,
+        config: { ...vclWidget.config, ...state.savedWorkflows.find((w) => w.id === vclWidget.workflowId)?.config, stepOrder: vclStepOrder },
+        restart: true,
+      },
+    }
+    : layoutRequest && designsContext.projectId
     ? {
       assistantText: layoutRequest === "cards"
         ? "Here's your project designs in a card layout. Save the workflow to keep this view."
@@ -595,6 +626,11 @@ export function sendMessage(text: string) {
       : result.uiAction,
     createdAt: new Date().toISOString(),
   };
+  const agentStaged = Boolean(vclWidget && vclStepOrder);
+  if (agentStaged) {
+    assistantMessage.text = "Working on it…";
+    assistantMessage.uiAction = { type: "agent_working", stage: 0, resultText: result.assistantText, result: result.uiAction };
+  }
   setState("messages", (messages) => [...messages, userMessage, assistantMessage]);
   const convIndex = state.conversations.findIndex((c) => c.id === conversationId);
   if (convIndex >= 0) {
@@ -609,7 +645,9 @@ export function sendMessage(text: string) {
     });
   }
   persist();
-  if (stagedTarget && savedProjectId) {
+  if (agentStaged) {
+    scheduleAgentWorking(assistantMessage.id, result.assistantText, result.uiAction);
+  } else if (stagedTarget && savedProjectId) {
     scheduleProjectScopedResult(assistantMessage.id, stagedTarget, savedProjectId, savedWorkflow?.id);
   } else if (stagedTarget) {
     scheduleProjectPicker(assistantMessage.id, stagedTarget);

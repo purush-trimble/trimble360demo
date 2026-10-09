@@ -1,5 +1,6 @@
 import type { AgentUIAction } from "@/lib/agent/types";
 import { createSignal } from "solid-js";
+import { AGENT_WORKING_STAGES } from "@/lib/mockStore";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
 import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginCard";
 import { DeviceManagementCard } from "@/components/plugins/DeviceManagementCard";
@@ -41,7 +42,7 @@ export function AgentUIRenderer(props: {
       const [config, setConfig] = createSignal(props.action.config);
       return (
         <div class="space-y-2">
-          <CreateVclDesignCard initialConfig={config()} onConfigChange={(next) => setConfig((current) => ({ ...current, ...next }))} onCreated={props.onCreated} />
+          <CreateVclDesignCard initialConfig={config()} restart={props.action.restart} onConfigChange={(next) => setConfig((current) => ({ ...current, ...next }))} onCreated={props.onCreated} />
           <SaveWorkflowButton
             name="Create a VCL design"
             description="Import a VCL file and target it to the right project and field device"
@@ -113,6 +114,19 @@ export function AgentUIRenderer(props: {
       return <div class="flex items-center gap-2 text-sm opacity-70" role="status"><span class="byop-spinner" aria-hidden="true" />Fetching projects…</div>;
     case "project_processing":
       return <div class="flex items-center gap-2 text-sm opacity-70" role="status"><span class="byop-spinner" aria-hidden="true" />Analyzing {props.action.projectName}…</div>;
+    case "agent_working": {
+      const stage = props.action.stage;
+      return (
+        <ol class="space-y-1 text-sm" role="status" aria-live="polite">
+          {AGENT_WORKING_STAGES.slice(0, stage + 1).map((label, index) => (
+            <li class={`flex items-center gap-2 ${index < stage ? "opacity-60" : ""}`}>
+              {index < stage ? <span aria-hidden="true">✓</span> : <span class="byop-spinner" aria-hidden="true" />}
+              {label}{index < stage ? "" : "…"}
+            </li>
+          ))}
+        </ol>
+      );
+    }
     case "project_picker":
       return <ProjectPickerCard projects={props.action.projects} targetAction={props.action.targetAction} onSelect={props.onProjectSelected} />;
     case "b2westimate_list":

@@ -94,7 +94,11 @@ export interface SavedWorkflowConfig {
   device?: string;
   designName?: string;
   layout?: DesignListLayout;
+  /** VCL stepper order; unset keeps the original source-first flow. */
+  stepOrder?: VclStepOrder;
 }
+
+export type VclStepOrder = "source-first" | "project-first";
 
 export interface SavedWorkflow {
   id: string;

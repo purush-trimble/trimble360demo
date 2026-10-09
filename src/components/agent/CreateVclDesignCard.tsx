@@ -43,8 +43,11 @@ function DeviceMark() {
   );
 }
 
-export function CreateVclDesignCard(props: { onCreated: () => void; initialConfig?: SavedWorkflowConfig; onConfigChange?: (config: SavedWorkflowConfig) => void }) {
-  const [step, setStep] = createSignal(props.initialConfig?.sourceId && props.initialConfig.projectId && props.initialConfig.mediumId ? 4 : 1);
+export function CreateVclDesignCard(props: { onCreated: () => void; initialConfig?: SavedWorkflowConfig; onConfigChange?: (config: SavedWorkflowConfig) => void; restart?: boolean }) {
+  const [step, setStep] = createSignal(!props.restart && props.initialConfig?.sourceId && props.initialConfig.projectId && props.initialConfig.mediumId ? 4 : 1);
+  const stepOrder = props.initialConfig?.stepOrder;
+  const sourceStep = stepOrder === "project-first" ? 2 : 1;
+  const projectStep = stepOrder === "project-first" ? 1 : 2;
   const [source, setSource] = createSignal<ConnectFile | null>(
     props.initialConfig?.sourceId
       ? { id: props.initialConfig.sourceId, accountId: "connect-demo", name: props.initialConfig.sourceName ?? "Saved VCL file", extension: "vcl", size: "Saved", updatedAt: "Previously selected" }
@@ -79,8 +82,9 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
     mediumId: mediumId() || undefined,
     device: deviceLabel() || undefined,
     designName: designName() || undefined,
+    stepOrder,
   });
-  const steps = ["Source", "Project", "Medium", "Device"];
+  const steps = stepOrder === "project-first" ? ["Project", "Source", "Medium", "Device"] : ["Source", "Project", "Medium", "Device"];
 
   function chooseProject(id: string) {
     setProjectId(id);
@@ -172,7 +176,7 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
             </For>
           </div>
 
-          <Show when={step() === 1}>
+          <Show when={step() === sourceStep}>
             <section aria-labelledby="vcl-source-heading">
               <div class="mb-3">
                 <h4 id="vcl-source-heading" class="font-semibold">Where is your design file?</h4>
@@ -189,7 +193,7 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
                   onClick={() => {
                     setSource({ id: "local-vcl-01", accountId: "local", name: "VCL_LocalSurface.vcl", extension: "vcl", size: "Local file", updatedAt: "Just now" });
                     reportConfig();
-                    setStep(2);
+                    setStep(sourceStep + 1);
                   }}
                 >
                   <strong class="block">Upload a local file</strong>
@@ -207,7 +211,7 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
                         setSource(selected);
                         props.onConfigChange?.({ ...props.initialConfig, sourceId: selected.id, sourceName: selected.name });
                         setShowConnect(false);
-                        setStep(2);
+                        setStep(sourceStep + 1);
                       }
                     }}
                   />
@@ -216,7 +220,7 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
             </section>
           </Show>
 
-          <Show when={step() === 2}>
+          <Show when={step() === projectStep}>
             <section aria-labelledby="vcl-project-heading">
               <div class="mb-3">
                 <h4 id="vcl-project-heading" class="font-semibold">Which project is this for?</h4>
@@ -241,7 +245,7 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
                 </For>
               </select>
               <div class="mt-4 flex justify-end">
-                <ModusButton disabled={!projectId()} onClick={() => setStep(3)}>Continue</ModusButton>
+                <ModusButton disabled={!projectId()} onClick={() => setStep(projectStep + 1)}>Continue</ModusButton>
               </div>
             </section>
           </Show>

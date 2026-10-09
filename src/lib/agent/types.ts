@@ -3,7 +3,7 @@ import type { WorksManagerProject } from "@/lib/types";
 
 export type AgentUIAction =
   | { type: "create_design"; accountId: string; suggestedName?: string; workflowId?: string; config?: SavedWorkflowConfig }
-  | { type: "create_vcl_design"; workflowId?: string; config?: SavedWorkflowConfig }
+  | { type: "create_vcl_design"; workflowId?: string; config?: SavedWorkflowConfig; restart?: boolean }
   | { type: "connect_file_browser"; accountId: string }
   | { type: "worksmanager_design_list"; accountId: string; projectId?: string; projectName?: string; workflowId?: string; config?: SavedWorkflowConfig }
   | { type: "device_management"; projectId?: string; projectName?: string; workflowId?: string; config?: SavedWorkflowConfig }
@@ -14,7 +14,8 @@ export type AgentUIAction =
   | { type: "autobid_list"; accountId: string }
   | { type: "publish_connect_to_wm" }
   | { type: "suggestions"; prompts: string[] }
-  | { type: "text"; message: string };
+  | { type: "text"; message: string }
+  | { type: "agent_working"; stage: number; resultText: string; result?: AgentUIAction };
 
 export interface ChatMessage {
   id: string;
