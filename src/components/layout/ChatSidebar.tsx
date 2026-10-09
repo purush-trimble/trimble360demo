@@ -1,4 +1,5 @@
 import { createSignal, For, Show } from "solid-js";
+import logo360 from "@/assets/logo360.svg";
 
 import {
 
@@ -183,7 +184,7 @@ export function ChatSidebar(props: {
 
             <div class="flex-1" />
 
-            <img class="byop-collapsed-mark" src="/logo360.svg" alt="Trimble 360" />
+            <img class="byop-collapsed-mark" src={logo360} alt="Trimble 360" />
 
           </div>
 

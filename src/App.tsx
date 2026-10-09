@@ -1,4 +1,5 @@
 import { createMemo, createSignal, Show } from "solid-js";
+import logo360 from "@/assets/logo360.svg";
 import { ChatWindow } from "@/components/ChatWindow";
 import { DashboardCanvas } from "@/components/dashboard/DashboardCanvas";
 import { LoginPage } from "@/components/LoginPage";
@@ -65,7 +66,7 @@ function Workspace() {
           </button>
         </Show>
         <div class="byop-brand">
-          <img class="byop-brand-mark" src="/logo360.svg" alt="Trimble 360" />
+          <img class="byop-brand-mark" src={logo360} alt="Trimble 360" />
           <span>
             <strong class="block text-sm">Trimble 360</strong>
             <span class="block text-xs opacity-60">Role-ready project handbook</span>
