@@ -5,6 +5,7 @@ export const DEFAULT_PROMPTS = [
   "Create a design",
   "Show my Connect files",
   "Show my designs",
+  "Show my devices",
   "Show my B2W estimates",
   "Show my AutoBid bids",
 ];
@@ -47,8 +48,14 @@ export const INTENTS: Intent[] = [
   {
     featureId: "wm_designs",
     requiresPlugins: ["worksmanager"],
-    matches: (text) => /(show|list|worksmanager).*\bdesigns?\b/i.test(text),
+    matches: (text) => /\b(show|list|view|need|want|display)\b.*\b(project\s+)?designs?\b/i.test(text),
     respond: () => ({ type: "worksmanager_design_list", accountId: "wm-demo" }),
+  },
+  {
+    featureId: "wm_devices",
+    requiresPlugins: ["worksmanager"],
+    matches: (text) => /\b(show|list|view|need|want|display)\b.*\b(project\s+)?(devices?|equipment)\b/i.test(text),
+    respond: () => ({ type: "device_management" }),
   },
   {
     featureId: "b2w_estimates",

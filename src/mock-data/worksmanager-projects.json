@@ -1,4 +1,12 @@
 [
-  { "id": "wm-project-01", "accountId": "wm-demo", "name": "North Ridge Highway", "status": "Active" },
-  { "id": "wm-project-02", "accountId": "wm-demo", "name": "Valley Interchange", "status": "Planning" }
+  { "id": "proj-north-ridge", "accountId": "wm-demo", "name": "North Ridge Highway", "status": "Active" },
+  { "id": "proj-valley", "accountId": "wm-demo", "name": "Valley Interchange", "status": "Planning" },
+  { "id": "proj-lakeside", "accountId": "wm-demo", "name": "Lakeside Bypass", "status": "Active" },
+  { "id": "proj-summit", "accountId": "wm-demo", "name": "Summit Connector", "status": "Active" },
+  { "id": "proj-pine-creek", "accountId": "wm-demo", "name": "Pine Creek Expansion", "status": "Planning" },
+  { "id": "proj-harbor", "accountId": "wm-demo", "name": "Harbor Freight Link", "status": "Active" },
+  { "id": "proj-redwood", "accountId": "wm-demo", "name": "Redwood Transit Hub", "status": "On hold" },
+  { "id": "proj-canyon", "accountId": "wm-demo", "name": "Canyon Water Main", "status": "Active" },
+  { "id": "proj-meadow", "accountId": "wm-demo", "name": "Meadowlands Sitework", "status": "Planning" },
+  { "id": "proj-eastgate", "accountId": "wm-demo", "name": "Eastgate Interchange", "status": "Active" }
 ]

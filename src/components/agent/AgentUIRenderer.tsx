@@ -2,6 +2,7 @@ import type { AgentUIAction } from "@/lib/agent/types";
 import { createSignal } from "solid-js";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
 import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginCard";
+import { DeviceManagementCard } from "@/components/plugins/DeviceManagementCard";
 import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCard";
 import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { CreateDesignCard } from "./CreateDesignCard";
@@ -10,11 +11,13 @@ import { EntitlementUpsellCard } from "./EntitlementUpsellCard";
 import { PublishConnectToWmCard } from "./PublishConnectToWmCard";
 import { SaveWorkflowButton } from "./SaveWorkflowButton";
 import { SuggestionChips } from "./SuggestionChips";
+import { ProjectPickerCard } from "./ProjectPickerCard";
 
 export function AgentUIRenderer(props: {
   action: AgentUIAction;
   onPrompt: (prompt: string) => void;
   onCreated: () => void;
+  onProjectSelected: (projectId: string) => void;
 }) {
   switch (props.action.type) {
     case "create_design":
@@ -66,16 +69,39 @@ export function AgentUIRenderer(props: {
     case "worksmanager_design_list":
       return (
         <div class="space-y-2">
-          <WorksManagerPluginCard />
+          <WorksManagerPluginCard projectId={props.action.projectId} projectName={props.action.projectName} />
           <SaveWorkflowButton
             name="WorksManager designs"
             description="View designs in a WorksManager project"
             prompt="show my designs"
             action="worksmanager_design_list"
             productIds={["worksmanager"]}
+            workflowId={props.action.workflowId}
+            config={{ ...props.action.config, projectId: props.action.projectId ?? props.action.config?.projectId }}
           />
         </div>
       );
+    case "device_management":
+      return (
+        <div class="space-y-2">
+          <DeviceManagementCard projectId={props.action.projectId} projectName={props.action.projectName} />
+          <SaveWorkflowButton
+            name="Project devices"
+            description="View and manage devices assigned to this project"
+            prompt="show my devices"
+            action="device_management"
+            productIds={["worksmanager"]}
+            workflowId={props.action.workflowId}
+            config={{ ...props.action.config, projectId: props.action.projectId ?? props.action.config?.projectId }}
+          />
+        </div>
+      );
+    case "project_loading":
+      return <div class="flex items-center gap-2 text-sm opacity-70" role="status"><span class="byop-spinner" aria-hidden="true" />Fetching projects…</div>;
+    case "project_processing":
+      return <div class="flex items-center gap-2 text-sm opacity-70" role="status"><span class="byop-spinner" aria-hidden="true" />Analyzing {props.action.projectName}…</div>;
+    case "project_picker":
+      return <ProjectPickerCard projects={props.action.projects} targetAction={props.action.targetAction} onSelect={props.onProjectSelected} />;
     case "b2westimate_list":
       return (
         <div class="space-y-2">

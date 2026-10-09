@@ -15,8 +15,6 @@ import {
 } from "@/lib/mockStore";
 import { markWelcomed, hasSeenWelcome, type WelcomeWorkflow } from "@/lib/welcomeWorkflows";
 import { promptsFor, selectionFromWidget, widgetById } from "@/lib/workProfileCatalog";
-import { workspaceSlice } from "@/lib/workProfiles";
-import { saveWorkProfile } from "@/lib/workProfiles";
 
 type AppView = "workspace" | "welcome";
 
@@ -33,15 +31,11 @@ function Workspace() {
   const [view, setView] = createSignal<AppView>(hasSeenWelcome() ? "workspace" : "welcome");
   const [tab, setTab] = createSignal<"chats" | "dashboard">(hasSeenWelcome() ? "chats" : "dashboard");
 
-  const slice = createMemo(() => workspaceSlice());
-
   const scopedPlugins = createMemo(() => {
-    const allowed = slice()?.productIds;
-    if (!allowed?.length) return listConnectablePluginIds().filter((id) => isPluginConnected(id));
-    return listConnectablePluginIds().filter((id) => isPluginConnected(id) && allowed.includes(id));
+    return listConnectablePluginIds().filter((id) => isPluginConnected(id));
   });
 
-  const suggestedPrompts = createMemo(() => promptsFor(slice()?.featureIds ?? []));
+  const suggestedPrompts = createMemo(() => promptsFor([]));
 
   function continueToChat() {
     markWelcomed();
@@ -58,17 +52,6 @@ function Workspace() {
       if (result.ok) completePluginConnect(pluginId);
     }
     const selected = selectionFromWidget("acct-morgan", widget);
-    if (!workspaceSlice()) {
-      saveWorkProfile({
-        name: selected.name,
-        accountId: "acct-morgan",
-        projectId: "proj-north-ridge",
-        solutionIds: selected.solutionIds,
-        featureIds: selected.featureIds,
-        productIds: selected.productIds,
-        widgetId: selected.widgetId,
-      });
-    }
     markWelcomed();
     saveWorkflow({
       name: selected.name,
@@ -82,7 +65,7 @@ function Workspace() {
   }
 
   return (
-    <div class="byop-app min-h-screen bg-[var(--modus-wc-color-base-page)] text-[var(--modus-wc-color-base-content)]">
+    <div class="byop-app flex min-h-screen flex-col bg-[var(--modus-wc-color-base-page)] text-[var(--modus-wc-color-base-content)]">
       <header class="byop-topbar">
         <Show when={view() === "workspace"}>
           <button
@@ -110,7 +93,7 @@ function Workspace() {
         <WelcomePage onLaunch={launchWorkflow} onContinueToChat={continueToChat} />
       </Show>
       <Show when={view() !== "welcome"}>
-        <div class="byop-shell flex h-[calc(100vh-64px)] w-full">
+        <div class="byop-shell flex min-h-0 flex-1 w-full">
           <Show when={view() === "workspace"}>
             <div class={`byop-chat-sidebar shrink-0 flex ${chatMenuOpen() ? "is-open" : "is-collapsed"}`}>
               <ChatSidebar
@@ -122,13 +105,11 @@ function Workspace() {
               />
             </div>
           </Show>
-          <Show when={tab() === "chats"} fallback={<DashboardCanvas allowedFeatureIds={slice()?.featureIds} onEdit={() => setTab("chats")} />}>
+          <Show when={tab() === "chats"} fallback={<DashboardCanvas onEdit={() => setTab("chats")} />}>
             <main class="byop-view-enter flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:p-7">
               <ChatWindow
                 mountedPlugins={scopedPlugins()}
-                connectedPlugins={scopedPlugins()}
                 suggestedPrompts={suggestedPrompts()}
-                allowedFeatureIds={slice()?.featureIds}
                 onCreated={() => undefined}
               />
             </main>

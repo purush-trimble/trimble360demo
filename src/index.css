@@ -3,6 +3,11 @@
 @import "@trimble-oss/moduswebcomponents/modus-icons.css";
 @import "@trimble-oss/moduswebcomponents/modus-icons-2.css";
 
+.byop-primary-button,.byop-secondary-button{border-radius:.5rem;padding:.55rem .85rem;font-size:.875rem;font-weight:700;cursor:pointer}
+.byop-primary-button{background:var(--modus-wc-color-primary);color:var(--modus-wc-color-primary-contrast,#fff)}
+.byop-secondary-button{border:1px solid var(--modus-wc-color-base-300);background:transparent}
+.byop-modal-footer{display:flex;justify-content:flex-end;gap:.6rem;border-top:1px solid var(--modus-wc-color-base-200);padding:1rem 1.25rem}
+
 body {
   margin: 0;
   background: var(--modus-wc-color-base-page);
@@ -42,6 +47,15 @@ select {
 }
 
 .byop-app {
+  --byop-glow-blue: #336195;
+  --byop-glow-cyan: #63b9ca;
+  --byop-glow-teal: #65b2a2;
+  --byop-glow-green: #9cd69c;
+  --byop-glow-yellow: #f9dd89;
+  --byop-glow-gold: #f9af32;
+  --byop-glow-a: var(--byop-glow-cyan);
+  --byop-glow-b: var(--byop-glow-teal);
+  --byop-glow-c: var(--byop-glow-blue);
   min-height: 100vh;
   background:
     radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--modus-wc-color-primary) 10%, transparent), transparent 34rem),
@@ -1005,25 +1019,6 @@ select {
   box-shadow: 0 12px 30px color-mix(in srgb, var(--modus-wc-color-black) 10%, transparent);
 }
 
-.byop-plugin-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.65rem;
-  border: 1px solid var(--modus-wc-color-base-300);
-  border-radius: 999px;
-  background: var(--modus-wc-color-base-100);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.byop-plugin-chip-dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: #1a7f37;
-}
-
 .byop-composer-wrap {
   position: relative;
   padding: 1.1rem 1.35rem 1.5rem;
@@ -1035,9 +1030,6 @@ select {
 }
 
 .byop-composer-glow-host {
-  --byop-glow-a: color-mix(in srgb, var(--modus-wc-color-primary) 55%, #2563eb);
-  --byop-glow-b: color-mix(in srgb, var(--modus-wc-color-primary) 35%, #06b6d4);
-  --byop-glow-c: color-mix(in srgb, var(--modus-wc-color-primary) 25%, #6366f1);
   position: relative;
   isolation: isolate;
 }
@@ -1052,26 +1044,41 @@ select {
 }
 
 .byop-composer-glow-host::before {
-  inset: 18% -3% -1.1rem;
+  inset: -1rem -1.4rem;
   background:
-    radial-gradient(ellipse 88% 78% at 50% 100%, color-mix(in srgb, var(--byop-glow-a) 72%, transparent), transparent 62%),
-    radial-gradient(ellipse 42% 55% at 12% 92%, color-mix(in srgb, var(--byop-glow-c) 42%, transparent), transparent 68%),
-    radial-gradient(ellipse 42% 55% at 88% 92%, color-mix(in srgb, var(--byop-glow-b) 42%, transparent), transparent 68%);
-  filter: blur(26px);
-  opacity: 0.88;
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--byop-glow-cyan) 38%, transparent),
+      transparent 28%,
+      transparent 70%,
+      color-mix(in srgb, var(--byop-glow-gold) 46%, transparent)
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--byop-glow-blue) 34%, transparent),
+      transparent 25%,
+      transparent 75%,
+      color-mix(in srgb, var(--byop-glow-green) 32%, transparent)
+    ),
+    radial-gradient(ellipse 42% 80% at 0% 50%, color-mix(in srgb, var(--byop-glow-blue) 62%, transparent), transparent 72%),
+    radial-gradient(ellipse 42% 80% at 100% 50%, color-mix(in srgb, var(--byop-glow-green) 58%, transparent), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in srgb, var(--byop-glow-cyan) 60%, transparent), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 50% 100%, color-mix(in srgb, var(--byop-glow-gold) 62%, transparent), transparent 72%);
+  filter: blur(24px);
+  opacity: 0.82;
   transform: scale(0.99);
   animation: byop-composer-glow-breathe 5.5s ease-in-out infinite;
 }
 
 .byop-composer-glow-host::after {
-  inset: 42% 10% -0.45rem;
-  background: radial-gradient(
-    ellipse 100% 95% at 50% 100%,
-    color-mix(in srgb, var(--byop-glow-a) 85%, transparent),
-    transparent 58%
-  );
-  filter: blur(14px);
-  opacity: 0.75;
+  inset: -0.45rem -0.7rem;
+  background:
+    radial-gradient(ellipse 58% 75% at 0% 0%, color-mix(in srgb, var(--byop-glow-blue) 52%, transparent), transparent 72%),
+    radial-gradient(ellipse 58% 75% at 100% 0%, color-mix(in srgb, var(--byop-glow-cyan) 48%, transparent), transparent 72%),
+    radial-gradient(ellipse 58% 75% at 0% 100%, color-mix(in srgb, var(--byop-glow-teal) 48%, transparent), transparent 72%),
+    radial-gradient(ellipse 58% 75% at 100% 100%, color-mix(in srgb, var(--byop-glow-yellow) 54%, transparent), transparent 72%);
+  filter: blur(12px);
+  opacity: 0.68;
 }
 
 .byop-composer-glow-host:focus-within::before {
@@ -1111,6 +1118,7 @@ select {
     border-box;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 72%, transparent),
+    inset 0 0 16px color-mix(in srgb, var(--byop-glow-cyan) 8%, transparent),
     0 1px 2px color-mix(in srgb, var(--modus-wc-color-black) 6%, transparent),
     0 8px 20px color-mix(in srgb, var(--modus-wc-color-black) 7%, transparent),
     0 14px 36px color-mix(in srgb, var(--byop-glow-a) 22%, transparent);
@@ -1123,18 +1131,20 @@ select {
 .byop-gemini-composer:hover {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 78%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--byop-glow-teal) 10%, transparent),
     0 2px 4px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent),
     0 10px 24px color-mix(in srgb, var(--modus-wc-color-black) 9%, transparent),
-    0 18px 44px color-mix(in srgb, var(--byop-glow-a) 28%, transparent);
+    0 18px 44px color-mix(in srgb, var(--byop-glow-gold) 24%, transparent);
 }
 
 .byop-gemini-composer:focus-within {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 82%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--byop-glow-a) 16%, transparent),
+    inset 0 0 20px color-mix(in srgb, var(--byop-glow-cyan) 12%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--byop-glow-teal) 16%, transparent),
     0 4px 12px color-mix(in srgb, var(--modus-wc-color-black) 8%, transparent),
-    0 20px 48px color-mix(in srgb, var(--byop-glow-a) 34%, transparent),
-    0 8px 28px color-mix(in srgb, var(--byop-glow-b) 22%, transparent);
+    0 20px 48px color-mix(in srgb, var(--byop-glow-gold) 30%, transparent),
+    0 8px 28px color-mix(in srgb, var(--byop-glow-blue) 22%, transparent);
 }
 
 @keyframes byop-composer-glow-breathe {
@@ -1361,7 +1371,6 @@ select {
 
 @media (max-width: 767px) {
   .byop-shell {
-    height: calc(100vh - 122px);
     overflow-x: auto;
     overflow-y: hidden;
   }
@@ -1818,50 +1827,6 @@ select {
   }
 }
 
-.byop-profile-saved {
-  width: 16rem;
-  flex-shrink: 0;
-  overflow-y: auto;
-  border-right: 1px solid var(--modus-wc-color-base-200);
-  background: var(--modus-wc-color-base-100);
-  padding: 1rem;
-}
-
-.byop-profile-saved-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--modus-wc-color-base-200);
-  border-radius: 0.65rem;
-  background: var(--modus-wc-color-base-page);
-  padding: 0.55rem 0.65rem;
-}
-
-.byop-profile-saved-item.is-active {
-  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 45%, transparent);
-  background: color-mix(in srgb, var(--modus-wc-color-primary) 8%, var(--modus-wc-color-base-page));
-}
-
-.byop-profile-saved-item.is-editing {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--modus-wc-color-primary) 35%, transparent);
-}
-
-.byop-profile-saved .byop-icon-button--rename svg {
-  width: 0.95rem;
-  height: 0.95rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
-.byop-profile-step {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
 .byop-choice {
   width: 100%;
   border: 1px solid var(--modus-wc-color-base-300);
@@ -1947,12 +1912,6 @@ select {
   width: 1.75rem;
   height: 1.75rem;
   font-size: 1rem;
-}
-
-@media (max-width: 900px) {
-  .byop-profile-saved {
-    display: none;
-  }
 }
 
 .byop-modal-header--panels,
@@ -2108,4 +2067,135 @@ select {
 
 @keyframes byop-vcl-spin {
   to { transform: rotate(360deg); }
+}
+
+/* Surface hierarchy: keep the app chrome distinct from the working canvas. */
+.byop-topbar {
+  position: relative;
+  z-index: 20;
+  border-bottom: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--modus-wc-color-base-100) 92%, white),
+      var(--modus-wc-color-base-page)
+    );
+  background-blend-mode: soft-light;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 70%, transparent),
+    0 8px 24px color-mix(in srgb, var(--modus-wc-color-black) 9%, transparent);
+  backdrop-filter: blur(14px) saturate(1.15);
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.byop-topbar::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--byop-glow-blue),
+    var(--byop-glow-cyan),
+    var(--byop-glow-teal),
+    var(--byop-glow-green),
+    var(--byop-glow-yellow),
+    var(--byop-glow-gold)
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.byop-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      ellipse 65% 40% at 72% 0%,
+      color-mix(in srgb, var(--modus-wc-color-primary) 5%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--modus-wc-color-base-100) 70%, transparent),
+      transparent 55%
+    );
+  background-blend-mode: soft-light, normal;
+}
+
+.byop-shell > main {
+  position: relative;
+}
+
+.byop-chat {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--modus-wc-color-base-300) 72%, var(--modus-wc-color-base-200));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--modus-wc-color-base-100) 46%, transparent),
+      transparent 42%
+    ),
+    var(--modus-wc-color-base-page);
+  background-blend-mode: soft-light, normal;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 72%, transparent),
+    0 14px 34px color-mix(in srgb, var(--modus-wc-color-black) 12%, transparent),
+    0 2px 5px color-mix(in srgb, var(--modus-wc-color-primary) 5%, transparent);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.byop-chat:hover {
+  border-color: color-mix(in srgb, var(--modus-wc-color-primary) 22%, var(--modus-wc-color-base-300));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 78%, transparent),
+    0 18px 40px color-mix(in srgb, var(--modus-wc-color-black) 14%, transparent),
+    0 3px 8px color-mix(in srgb, var(--modus-wc-color-primary) 7%, transparent);
+}
+
+.byop-chat-header {
+  position: relative;
+  border-bottom-color: color-mix(in srgb, var(--modus-wc-color-primary) 16%, var(--modus-wc-color-base-200));
+  box-shadow:
+    inset 0 -1px 0 color-mix(in srgb, white 55%, transparent),
+    0 5px 16px color-mix(in srgb, var(--modus-wc-color-black) 5%, transparent);
+}
+
+.byop-chat-header::after {
+  position: absolute;
+  right: 1.5rem;
+  bottom: -1px;
+  left: 1.5rem;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--modus-wc-color-primary) 32%, transparent) 22%,
+    transparent 78%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.byop-chat > .overflow-y-auto {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--modus-wc-color-base-100) 28%, transparent),
+      transparent 7rem
+    );
+  scrollbar-color: var(--modus-wc-color-base-300) transparent;
+}
+
+.byop-composer-wrap {
+  border-top-color: color-mix(in srgb, var(--modus-wc-color-primary) 14%, var(--modus-wc-color-base-200));
+  box-shadow: 0 -8px 22px color-mix(in srgb, var(--modus-wc-color-black) 5%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byop-topbar,
+  .byop-chat {
+    transition: none;
+  }
 }

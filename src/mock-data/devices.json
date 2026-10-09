@@ -1,0 +1,15 @@
+[
+  { "id": "device-01", "projectId": "proj-north-ridge", "name": "North Ridge EC520", "type": "EC520", "model": "Earthworks Controller", "serial": "EC520-0142", "status": "Online" },
+  { "id": "device-02", "projectId": "proj-north-ridge", "name": "Site tablet 01", "type": "Tablet", "model": "TSC7", "serial": "TSC7-2291", "status": "Online" },
+  { "id": "device-03", "projectId": "proj-north-ridge", "name": "Machine control tablet", "type": "Tablet", "model": "T10", "serial": "T10-7781", "status": "Offline" },
+  { "id": "device-04", "projectId": "proj-valley", "name": "Valley EC520", "type": "EC520", "model": "Earthworks Controller", "serial": "EC520-0311", "status": "Maintenance" },
+  { "id": "device-05", "projectId": "proj-valley", "name": "Valley rover", "type": "Rover", "model": "R12i", "serial": "R12I-0055", "status": "Online" },
+  { "id": "device-06", "projectId": "proj-lakeside", "name": "Lakeside tablet", "type": "Tablet", "model": "TSC7", "serial": "TSC7-3101", "status": "Online" },
+  { "id": "device-07", "projectId": "proj-summit", "name": "Summit rover", "type": "Rover", "model": "R12i", "serial": "R12I-3102", "status": "Online" },
+  { "id": "device-08", "projectId": "proj-pine-creek", "name": "Pine Creek EC520", "type": "EC520", "model": "Earthworks Controller", "serial": "EC520-3103", "status": "Maintenance" },
+  { "id": "device-09", "projectId": "proj-harbor", "name": "Harbor tablet", "type": "Tablet", "model": "T10", "serial": "T10-3104", "status": "Online" },
+  { "id": "device-10", "projectId": "proj-redwood", "name": "Redwood rover", "type": "Rover", "model": "R12i", "serial": "R12I-3105", "status": "Offline" },
+  { "id": "device-11", "projectId": "proj-canyon", "name": "Canyon EC520", "type": "EC520", "model": "Earthworks Controller", "serial": "EC520-3106", "status": "Online" },
+  { "id": "device-12", "projectId": "proj-meadow", "name": "Meadow tablet", "type": "Tablet", "model": "TSC7", "serial": "TSC7-3107", "status": "Online" },
+  { "id": "device-13", "projectId": "proj-eastgate", "name": "Eastgate rover", "type": "Rover", "model": "R12i", "serial": "R12I-3108", "status": "Maintenance" }
+]

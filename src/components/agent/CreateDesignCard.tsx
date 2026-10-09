@@ -14,7 +14,7 @@ export function CreateDesignCard(props: { onCreated: () => void }) {
   async function create() {
     if (!fileIds().length) return;
     setCreating(true);
-    createDesign({ projectId: "wm-project-01", name: name(), sourceFileIds: fileIds() });
+    createDesign({ projectId: "proj-north-ridge", name: name(), sourceFileIds: fileIds() });
     setCreating(false);
     props.onCreated();
   }

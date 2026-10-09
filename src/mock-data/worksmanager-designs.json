@@ -1,25 +1,117 @@
 [
   {
     "id": "design-1790692117314",
-    "projectId": "wm-project-01",
-    "name": "North Ridge imported design",
+    "projectId": "proj-north-ridge",
+    "name": "North Ridge VCL Design 1",
     "sourceFileIds": [
       "file-vcl-01",
       "file-svd-01"
     ],
     "status": "Ready",
-    "createdAt": "Sep 29, 2026"
+    "createdAt": "Sep 29, 2026",
+    "type": "VCL"
   },
   {
     "id": "design-1790692148521",
-    "projectId": "wm-project-01",
-    "name": "North Ridge imported design",
+    "projectId": "proj-north-ridge",
+    "name": "North Ridge SVD Design",
     "sourceFileIds": [
       "file-vcl-01",
       "file-svd-01",
       "file-svl-01"
     ],
     "status": "Ready",
-    "createdAt": "Sep 29, 2026"
+    "createdAt": "Sep 29, 2026",
+    "type": "SVD"
+  },
+  {
+    "id": "design-valley-dxf",
+    "projectId": "proj-valley",
+    "name": "Valley Ramp DXF Design",
+    "sourceFileIds": ["file-dxf-01"],
+    "status": "Ready",
+    "createdAt": "Oct 2, 2026",
+    "type": "DXF"
+  },
+  {
+    "id": "design-valley-ttm",
+    "projectId": "proj-valley",
+    "name": "Valley Finished Grade TTM",
+    "sourceFileIds": ["file-ttm-01"],
+    "status": "Processing",
+    "createdAt": "Oct 4, 2026",
+    "type": "TTM"
+  },
+  {
+    "id": "design-lakeside-svd",
+    "projectId": "proj-lakeside",
+    "name": "Lakeside Bypass Surface",
+    "sourceFileIds": ["file-lakeside-01"],
+    "status": "Ready",
+    "createdAt": "Oct 3, 2026",
+    "type": "SVD"
+  },
+  {
+    "id": "design-summit-vcl",
+    "projectId": "proj-summit",
+    "name": "Summit Connector VCL",
+    "sourceFileIds": ["file-summit-01"],
+    "status": "Ready",
+    "createdAt": "Oct 3, 2026",
+    "type": "VCL"
+  },
+  {
+    "id": "design-pine-dxf",
+    "projectId": "proj-pine-creek",
+    "name": "Pine Creek Layout",
+    "sourceFileIds": ["file-pine-01"],
+    "status": "Processing",
+    "createdAt": "Oct 4, 2026",
+    "type": "DXF"
+  },
+  {
+    "id": "design-harbor-ttm",
+    "projectId": "proj-harbor",
+    "name": "Harbor Freight Grade",
+    "sourceFileIds": ["file-harbor-01"],
+    "status": "Ready",
+    "createdAt": "Oct 5, 2026",
+    "type": "TTM"
+  },
+  {
+    "id": "design-redwood-svd",
+    "projectId": "proj-redwood",
+    "name": "Redwood Transit Surface",
+    "sourceFileIds": ["file-redwood-01"],
+    "status": "Ready",
+    "createdAt": "Oct 5, 2026",
+    "type": "SVD"
+  },
+  {
+    "id": "design-canyon-vcl",
+    "projectId": "proj-canyon",
+    "name": "Canyon Water Main VCL",
+    "sourceFileIds": ["file-canyon-01"],
+    "status": "Ready",
+    "createdAt": "Oct 6, 2026",
+    "type": "VCL"
+  },
+  {
+    "id": "design-meadow-dxf",
+    "projectId": "proj-meadow",
+    "name": "Meadowlands Site Plan",
+    "sourceFileIds": ["file-meadow-01"],
+    "status": "Ready",
+    "createdAt": "Oct 6, 2026",
+    "type": "DXF"
+  },
+  {
+    "id": "design-eastgate-svd",
+    "projectId": "proj-eastgate",
+    "name": "Eastgate Interchange Surface",
+    "sourceFileIds": ["file-eastgate-01"],
+    "status": "Ready",
+    "createdAt": "Oct 7, 2026",
+    "type": "SVD"
   }
 ]

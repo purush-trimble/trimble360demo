@@ -170,7 +170,7 @@ export const SOLUTIONS: Solution[] = [
     name: "Building construction field systems",
     description: "Carry the model into layout and field verification.",
     pluginIds: ["worksmanager"],
-    featureIds: ["wm_designs"],
+    featureIds: ["wm_designs", "wm_devices"],
   },
   {
     id: "machine-control",
@@ -348,6 +348,14 @@ export const FEATURES: ProductFeature[] = [
     description: "Review the designs this job will build from.",
     phase: "build",
     prompt: "show my designs",
+  },
+  {
+    id: "wm_devices",
+    productId: "worksmanager",
+    name: "Project devices",
+    description: "Review and manage equipment assigned to this job.",
+    phase: "build",
+    prompt: "show my devices",
   },
   {
     id: "publish_to_wm",
@@ -720,6 +728,7 @@ export const FEATURE_ACTION: Record<string, string> = {
   create_design: "create_design",
   create_vcl_design: "create_vcl_design",
   wm_designs: "worksmanager_design_list",
+  wm_devices: "device_management",
   publish_to_wm: "publish_connect_to_wm",
   b2w_estimates: "b2westimate_list",
   autobid_bids: "autobid_list",

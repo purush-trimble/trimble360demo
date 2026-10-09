@@ -33,12 +33,12 @@ export function LoginPage() {
           <p class="text-sm font-semibold tracking-wide text-white/80">Trimble 360</p>
           <h1 class="mt-6 max-w-lg text-4xl font-bold leading-tight">Role-ready project handbook</h1>
           <p class="mt-4 max-w-md text-lg text-white/85">
-            Sign in to set up work profiles and compose licensed Trimble workflow widgets for each job.
+            Sign in to open your licensed Trimble workflow workspace.
           </p>
         </div>
         <ul class="relative space-y-3 text-sm text-white/90">
           <li>Pick account, project, and widgets tuned to your project phase.</li>
-          <li>Chat with the assistant — only tools in your work profile appear.</li>
+          <li>Chat with the assistant across your connected products.</li>
           <li>Use the job view for status panels and execution tools without switching apps.</li>
         </ul>
       </section>
@@ -52,7 +52,7 @@ export function LoginPage() {
           <modus-wc-logo name="trimble" alt="Trimble" custom-class="login-trimble-logo" />
           <modus-wc-card bordered padding="comfortable" class="login-card mt-6 w-full">
             <span slot="title">Sign in</span>
-            <span slot="subtitle">Use your Trimble ID to open this demo workspace and set up your first work profile.</span>
+            <span slot="subtitle">Use your Trimble ID to open this demo workspace.</span>
             <form class="flex flex-col gap-4" onSubmit={submit}>
               <Show when={error()}>
                 <modus-wc-alert variant="error" alert-title={error()} role="alert" />

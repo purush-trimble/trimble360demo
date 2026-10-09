@@ -6,6 +6,7 @@ import worksmanagerDesignsSeed from "@/mock-data/worksmanager-designs.json";
 import worksmanagerProjectsSeed from "@/mock-data/worksmanager-projects.json";
 import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
 import autobidsSeed from "@/mock-data/autobids.json";
+import devicesSeed from "@/mock-data/devices.json";
 import { currentUser } from "@/lib/currentUser";
 import { resolveIntent } from "@/lib/agent/intentRouter";
 import { dashboardPanelsForFeatures } from "@/lib/workProfileCatalog";
@@ -23,6 +24,7 @@ import type {
   AutoBid,
   B2wEstimate,
   WorksManagerProject,
+  Device,
 } from "@/lib/types";
 
 const STORAGE_KEY = "byop-demo-v2";
@@ -31,6 +33,7 @@ type Persisted = {
   entitlements: Entitlement[];
   messages: ChatMessage[];
   designs: Design[];
+  devices?: Device[];
   conversations: Conversation[];
   activeConversationId: string;
   savedWorkflows: SavedWorkflow[];
@@ -39,8 +42,86 @@ type Persisted = {
   pluginConnections: PluginConnection[];
   dashboards?: Dashboard[];
   activeDashboardId?: string;
-  activeSavedWorkflowId?: string;
+  starterWorkflowsSeeded?: boolean;
 };
+
+type ProjectScopedAction = "worksmanager_design_list" | "device_management";
+
+function findSavedWorkflowForPrompt(prompt: string, action: ProjectScopedAction): SavedWorkflow | undefined {
+  const key = prompt.trim().toLowerCase();
+  const active = state.savedWorkflows.find((workflow) => workflow.id === state.activeSavedWorkflowId);
+  if (active && active.action === action && active.prompt.trim().toLowerCase() === key) return active;
+  return state.savedWorkflows.find((workflow) => workflow.action === action && workflow.prompt.trim().toLowerCase() === key);
+}
+
+function buildProjectScopedUiAction(
+  targetAction: ProjectScopedAction,
+  projectId: string,
+  workflowId?: string,
+): NonNullable<ChatMessage["uiAction"]> {
+  const project = state.projects.find((item) => item.id === projectId);
+  const projectName = project?.name ?? "Project";
+  const config = { projectId };
+  if (targetAction === "worksmanager_design_list") {
+    return { type: "worksmanager_design_list", accountId: "wm-demo", projectId, projectName, config, workflowId };
+  }
+  return { type: "device_management", projectId, projectName, config, workflowId };
+}
+
+function persistProjectOnSavedWorkflow(workflowId: string | undefined, projectId: string) {
+  if (!workflowId) return;
+  const index = state.savedWorkflows.findIndex((workflow) => workflow.id === workflowId);
+  if (index < 0) return;
+  setState("savedWorkflows", index, "config", { ...state.savedWorkflows[index].config, projectId });
+  setState("savedWorkflows", index, "updatedAt", new Date().toISOString());
+}
+
+function scheduleProjectPicker(assistantMessageId: string, targetAction: ProjectScopedAction) {
+  setTimeout(() => {
+    replaceAssistantMessage(
+      assistantMessageId,
+      "Select a project so I can load the requested workspace data.",
+      { type: "project_picker", targetAction, projects: getProjects("wm-demo") },
+    );
+  }, 700);
+}
+
+function scheduleProjectScopedResult(
+  assistantMessageId: string,
+  targetAction: ProjectScopedAction,
+  projectId: string,
+  workflowId?: string,
+) {
+  setTimeout(() => {
+    const project = state.projects.find((item) => item.id === projectId);
+    const projectName = project?.name ?? "Project";
+    replaceAssistantMessage(
+      assistantMessageId,
+      `Here are the ${targetAction === "worksmanager_design_list" ? "designs" : "devices"} for ${projectName}.`,
+      buildProjectScopedUiAction(targetAction, projectId, workflowId),
+    );
+  }, 700);
+}
+
+const starterWorkflows: SavedWorkflow[] = [
+  {
+    id: "workflow-vcl-design",
+    name: "Create a VCL design",
+    description: "Import and prepare a VCL file for a field device",
+    prompt: "create a VCL design",
+    action: "create_vcl_design",
+    productIds: ["connect", "worksmanager"],
+    favorite: false,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+];
+
+function withStarterWorkflows(saved: SavedWorkflow[]) {
+  const userWorkflows = saved.filter((workflow) => !["workflow-project-designs", "workflow-project-devices"].includes(workflow.id));
+  const existingActions = new Set(userWorkflows.map((workflow) => workflow.action));
+  return [...userWorkflows, ...starterWorkflows.filter((workflow) => !existingActions.has(workflow.action))];
+}
 
 function defaultDashboards(): Dashboard[] {
   return [
@@ -120,6 +201,27 @@ function buildInitialConversation(messages: ChatMessage[]): { conversations: Con
   return { conversations: [conversation], activeId: id };
 }
 
+function recoverStagedMessage(message: ChatMessage): ChatMessage {
+  const action = message.uiAction;
+  if (action?.type === "project_loading") {
+    return {
+      ...message,
+      text: "Select a project so I can load the requested workspace data.",
+      uiAction: { type: "project_picker", targetAction: action.targetAction, projects: worksmanagerProjectsSeed as WorksManagerProject[] },
+    };
+  }
+  if (action?.type === "project_processing") {
+    return {
+      ...message,
+      text: `Here are the ${action.targetAction === "worksmanager_design_list" ? "designs" : "devices"} for ${action.projectName}.`,
+      uiAction: action.targetAction === "worksmanager_design_list"
+        ? { type: "worksmanager_design_list", accountId: "wm-demo", projectId: action.projectId, projectName: action.projectName, config: { projectId: action.projectId } }
+        : { type: "device_management", projectId: action.projectId, projectName: action.projectName, config: { projectId: action.projectId } },
+    };
+  }
+  return message;
+}
+
 function migrateFromV1(): Persisted | null {
   try {
     const raw = localStorage.getItem("trimble360-demo-v1");
@@ -177,7 +279,8 @@ function normalizePersisted(raw: Persisted & { widgets?: SavedWorkflow[]; dashbo
   return {
     ...raw,
     entitlements,
-    savedWorkflows: raw.savedWorkflows ?? raw.widgets ?? [],
+    savedWorkflows: withStarterWorkflows(raw.savedWorkflows ?? raw.widgets ?? []),
+    starterWorkflowsSeeded: true,
     activeSavedWorkflowId: raw.activeSavedWorkflowId,
     dashboards: (raw.dashboards ?? defaultDashboards()).map(normalizeDashboard),
     pluginConnections: pluginConnections.length ? pluginConnections : defaultPluginConnections(),
@@ -201,7 +304,7 @@ function savePersisted(data: Persisted) {
 }
 
 const persisted = loadPersisted();
-const initialMessages = (persisted?.messages ?? chatMessagesSeed) as ChatMessage[];
+const initialMessages = ((persisted?.messages ?? chatMessagesSeed) as ChatMessage[]).map(recoverStagedMessage);
 const initialConv =
   persisted?.conversations ??
   buildInitialConversation(initialMessages.length ? initialMessages : []).conversations;
@@ -210,13 +313,14 @@ const [state, setState] = createStore({
   entitlements: (persisted?.entitlements ?? entitlementsSeed) as Entitlement[],
   messages: initialMessages,
   designs: (persisted?.designs ?? worksmanagerDesignsSeed) as Design[],
+  devices: (persisted?.devices ?? devicesSeed) as Device[],
   connectFiles: connectFilesSeed,
   projects: worksmanagerProjectsSeed as WorksManagerProject[],
   b2wEstimates: b2wEstimatesSeed as B2wEstimate[],
   autobids: autobidsSeed as AutoBid[],
   conversations: initialConv,
   activeConversationId: persisted?.activeConversationId ?? initialConv[0]?.id ?? "",
-  savedWorkflows: (persisted?.savedWorkflows ?? []) as SavedWorkflow[],
+  savedWorkflows: (persisted?.savedWorkflows ?? starterWorkflows) as SavedWorkflow[],
   activeSavedWorkflowId: persisted?.activeSavedWorkflowId ?? "",
   preferences: normalizePreferences(persisted?.preferences),
   pluginConnections: persisted?.pluginConnections ?? defaultPluginConnections(),
@@ -229,9 +333,11 @@ function snapshot(): Persisted {
     entitlements: state.entitlements,
     messages: state.messages,
     designs: state.designs,
+    devices: state.devices,
     conversations: state.conversations,
     activeConversationId: state.activeConversationId,
     savedWorkflows: state.savedWorkflows,
+    starterWorkflowsSeeded: true,
     activeSavedWorkflowId: state.activeSavedWorkflowId,
     preferences: state.preferences,
     pluginConnections: state.pluginConnections,
@@ -257,9 +363,10 @@ export function resetDemoStorage() {
     entitlements: entitlementsSeed as Entitlement[],
     messages,
     designs: worksmanagerDesignsSeed as Design[],
+    devices: devicesSeed as Device[],
     conversations,
     activeConversationId: activeId,
-    savedWorkflows: [],
+    savedWorkflows: [...starterWorkflows],
     activeSavedWorkflowId: "",
     preferences: defaultPreferences,
     pluginConnections: defaultPluginConnections(),
@@ -277,7 +384,7 @@ export function selectDashboard(id: string) {
   persist();
 }
 
-/** Opens a job view dashboard that mirrors the work profile's feature mix. */
+/** Opens a job view dashboard for a selected feature mix. */
 export function openProfileDashboard(name: string, featureIds: string[]) {
   const tiles = dashboardPanelsForFeatures(featureIds);
   const dashboard: Dashboard = {
@@ -488,7 +595,14 @@ export function searchConversations(query: string) {
   return listConversations().filter((c) => c.title.toLowerCase().includes(q));
 }
 
-export function sendMessage(text: string, mountedPlugins: PluginId[], allowedFeatureIds?: string[]) {
+function replaceAssistantMessage(messageId: string, text: string, uiAction: ChatMessage["uiAction"]) {
+  const index = state.messages.findIndex((message) => message.id === messageId);
+  if (index < 0) return;
+  setState("messages", index, { text, uiAction, createdAt: new Date().toISOString() });
+  persist();
+}
+
+export function sendMessage(text: string, mountedPlugins: PluginId[]) {
   const trimmed = text.trim();
   if (!trimmed) return null;
   let conversationId = state.activeConversationId;
@@ -500,15 +614,32 @@ export function sendMessage(text: string, mountedPlugins: PluginId[], allowedFea
   const result = resolveIntent(trimmed, {
     mountedPlugins: new Set(mountedPlugins),
     entitlements,
-    allowedFeatureIds: allowedFeatureIds?.length ? new Set(allowedFeatureIds) : undefined,
   });
   const now = new Date().toISOString();
   const userMessage: ChatMessage = { id: `message-${Date.now()}`, role: "user", text: trimmed, createdAt: now };
+  const stagedTarget = result.uiAction?.type === "worksmanager_design_list" || result.uiAction?.type === "device_management"
+    ? result.uiAction.type
+    : undefined;
+  const savedWorkflow = stagedTarget ? findSavedWorkflowForPrompt(trimmed, stagedTarget) : undefined;
+  const savedProjectId = savedWorkflow?.config?.projectId;
   const assistantMessage: ChatMessage = {
     id: `message-${Date.now()}-assistant`,
     role: "assistant",
-    text: result.assistantText,
-    uiAction: result.uiAction,
+    text: stagedTarget
+      ? savedProjectId
+        ? `Loading ${savedWorkflow?.name ?? "workspace"}…`
+        : "Fetching projects…"
+      : result.assistantText,
+    uiAction: stagedTarget
+      ? savedProjectId
+        ? {
+          type: "project_processing",
+          targetAction: stagedTarget,
+          projectId: savedProjectId,
+          projectName: state.projects.find((project) => project.id === savedProjectId)?.name ?? "Project",
+        }
+        : { type: "project_loading", targetAction: stagedTarget }
+      : result.uiAction,
     createdAt: new Date().toISOString(),
   };
   setState("messages", (messages) => [...messages, userMessage, assistantMessage]);
@@ -525,7 +656,35 @@ export function sendMessage(text: string, mountedPlugins: PluginId[], allowedFea
     });
   }
   persist();
+  if (stagedTarget && savedProjectId) {
+    scheduleProjectScopedResult(assistantMessage.id, stagedTarget, savedProjectId, savedWorkflow?.id);
+  } else if (stagedTarget) {
+    scheduleProjectPicker(assistantMessage.id, stagedTarget);
+  }
   return { userMessage, assistantMessage };
+}
+
+export function completeProjectSelection(projectId: string) {
+  const conversation = state.conversations.find((item) => item.id === state.activeConversationId);
+  const pickerMessage = conversation
+    ? [...conversation.messageIds].reverse().map((id) => state.messages.find((message) => message.id === id)).find(
+      (message): message is ChatMessage => message?.uiAction?.type === "project_picker",
+    )
+    : undefined;
+  if (!pickerMessage || pickerMessage.uiAction?.type !== "project_picker") return;
+  const project = state.projects.find((item) => item.id === projectId);
+  if (!project) return;
+  const targetAction = pickerMessage.uiAction.targetAction;
+  const workflowId = state.savedWorkflows.find(
+    (workflow) => workflow.id === state.activeSavedWorkflowId && workflow.action === targetAction,
+  )?.id;
+  persistProjectOnSavedWorkflow(workflowId, projectId);
+  replaceAssistantMessage(
+    pickerMessage.id,
+    `Analyzing ${project.name}…`,
+    { type: "project_processing", targetAction, projectId, projectName: project.name },
+  );
+  scheduleProjectScopedResult(pickerMessage.id, targetAction, projectId, workflowId);
 }
 
 export function saveWorkflow(input: {
@@ -547,7 +706,7 @@ export function saveWorkflow(input: {
         prompt: input.prompt,
         action: input.action,
         productIds: input.productIds,
-        config: input.config,
+        config: input.config ?? state.savedWorkflows[index].config,
         updatedAt: now,
       });
       setState("activeSavedWorkflowId", input.workflowId);
@@ -594,18 +753,43 @@ export function openSavedWorkflowInChat(id: string) {
   if (!workflow) return;
   createConversation();
   const now = new Date().toISOString();
+  const projectScopedAction = workflow.action === "worksmanager_design_list" || workflow.action === "device_management"
+    ? workflow.action as ProjectScopedAction
+    : undefined;
+  if (projectScopedAction && !workflow.config?.projectId) {
+    const userMessage: ChatMessage = { id: `message-${Date.now()}`, role: "user", text: workflow.prompt, createdAt: now };
+    const assistantMessage: ChatMessage = {
+      id: `message-${Date.now()}-assistant`,
+      role: "assistant",
+      text: "Fetching projects…",
+      uiAction: { type: "project_loading", targetAction: projectScopedAction },
+      createdAt: now,
+    };
+    setState("messages", (messages) => [...messages, userMessage, assistantMessage]);
+    const index = state.conversations.findIndex((conversation) => conversation.id === state.activeConversationId);
+    if (index >= 0) {
+      setState("conversations", index, "messageIds", (ids) => [...ids, userMessage.id, assistantMessage.id]);
+      setState("conversations", index, "updatedAt", now);
+    }
+    setState("activeSavedWorkflowId", workflow.id);
+    persist();
+    scheduleProjectPicker(assistantMessage.id, projectScopedAction);
+    return;
+  }
   const uiAction = workflow.action === "create_vcl_design"
     ? { type: "create_vcl_design" as const, workflowId: workflow.id, config: workflow.config }
     : workflow.action === "create_design"
       ? { type: "create_design" as const, accountId: "wm-demo", workflowId: workflow.id, config: workflow.config }
       : workflow.action === "connect_file_browser"
         ? { type: "connect_file_browser" as const, accountId: "connect-demo" }
-        : workflow.action === "worksmanager_design_list"
-          ? { type: "worksmanager_design_list" as const, accountId: "wm-demo" }
+        : workflow.action === "worksmanager_design_list" && workflow.config?.projectId
+          ? buildProjectScopedUiAction("worksmanager_design_list", workflow.config.projectId, workflow.id)
           : workflow.action === "b2westimate_list"
             ? { type: "b2westimate_list" as const, accountId: "b2w-demo" }
             : workflow.action === "autobid_list"
               ? { type: "autobid_list" as const, accountId: "autobid-demo" }
+                : workflow.action === "device_management" && workflow.config?.projectId
+                  ? buildProjectScopedUiAction("device_management", workflow.config.projectId, workflow.id)
               : workflow.action === "publish_connect_to_wm"
                 ? { type: "publish_connect_to_wm" as const }
       : undefined;
@@ -636,6 +820,7 @@ export function toggleWorkflowFavorite(id: string) {
 
 export function deleteWorkflow(id: string) {
   setState("savedWorkflows", (items) => items.filter((w) => w.id !== id));
+  if (state.activeSavedWorkflowId === id) setState("activeSavedWorkflowId", state.savedWorkflows[0]?.id ?? "");
   persist();
 }
 
@@ -664,6 +849,20 @@ export function getDesigns(projectId: string) {
   return state.designs.filter((design) => design.projectId === projectId);
 }
 
+export function getDevices(projectId: string) {
+  return state.devices.filter((device) => device.projectId === projectId);
+}
+
+export function addDevice(input: Omit<Device, "id" | "status">) {
+  if (state.devices.some((device) => device.serial.toLowerCase() === input.serial.trim().toLowerCase())) {
+    return { ok: false as const, error: "A device with this serial number already exists." };
+  }
+  const device: Device = { ...input, id: `device-${Date.now()}`, serial: input.serial.trim(), status: "Offline" };
+  setState("devices", (devices) => [...devices, device]);
+  persist();
+  return { ok: true as const, device };
+}
+
 export function createDesign(input: { projectId: string; name?: string; sourceFileIds: string[] }) {
   const design: Design = {
     id: `design-${Date.now()}`,
@@ -676,4 +875,17 @@ export function createDesign(input: { projectId: string; name?: string; sourceFi
   setState("designs", (designs) => [...designs, design]);
   persist();
   return design;
+}
+
+if (import.meta.env.DEV) {
+  const migratedStarters = withStarterWorkflows([starterWorkflows[0]]);
+  if (migratedStarters.length !== 1 || migratedStarters[0]?.action !== "create_vcl_design") {
+    console.error("starter workflow migration self-check failed", migratedStarters);
+  }
+  if (state.projects.length < 10 || state.projects.some((project) => !getDesigns(project.id).length || !getDevices(project.id).length)) {
+    console.error("project mock coverage self-check failed", {
+      projects: state.projects.length,
+      missingData: state.projects.filter((project) => !getDesigns(project.id).length || !getDevices(project.id).length).map((project) => project.id),
+    });
+  }
 }

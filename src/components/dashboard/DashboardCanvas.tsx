@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Show, type JSX } from "solid-js";
+import { createSignal, For, Show, type JSX } from "solid-js";
 import { CreateDesignCard } from "@/components/agent/CreateDesignCard";
 import { CreateVclDesignCard } from "@/components/agent/CreateVclDesignCard";
 import { PublishConnectToWmCard } from "@/components/agent/PublishConnectToWmCard";
@@ -7,13 +7,12 @@ import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCard";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
 import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginCard";
+import { DeviceManagementCard } from "@/components/plugins/DeviceManagementCard";
 import { DesignWorkflowPanel } from "@/components/dashboard/DesignWorkflowPanel";
 import {
   DESIGN_WORKFLOW_ACTION,
-  DESIGN_WORKFLOW_FEATURES,
   FEATURE_ACTION,
   featureById,
-  isDesignWorkflowBundle,
 } from "@/lib/workProfileCatalog";
 import { getActiveSavedWorkflow, openSavedWorkflowInChat, state } from "@/lib/mockStore";
 
@@ -23,7 +22,18 @@ const PANEL_VIEWS: Record<string, () => JSX.Element> = {
   create_design: () => <CreateDesignCard onCreated={() => undefined} />,
   create_vcl_design: () => <CreateVclDesignCard onCreated={() => undefined} />,
   connect_file_browser: () => <ConnectPluginCard />,
-  worksmanager_design_list: () => <WorksManagerPluginCard />,
+  worksmanager_design_list: () => {
+    const saved = getActiveSavedWorkflow();
+    const projectId = saved?.config?.projectId;
+    const projectName = projectId ? state.projects.find((project) => project.id === projectId)?.name : undefined;
+    return <WorksManagerPluginCard projectId={projectId} projectName={projectName} />;
+  },
+  device_management: () => {
+    const saved = getActiveSavedWorkflow();
+    const projectId = saved?.config?.projectId;
+    const projectName = projectId ? state.projects.find((project) => project.id === projectId)?.name : undefined;
+    return <DeviceManagementCard projectId={projectId} projectName={projectName} />;
+  },
   b2westimate_list: () => <B2wEstimatePluginCard />,
   autobid_list: () => <AutoBidPluginCard />,
 };
@@ -42,30 +52,18 @@ const FEATURE_PANELS = [
   { id: "panel-vcl", featureId: "create_vcl_design", name: "Create a VCL design", description: "Import and prepare a VCL file for a field device", action: "create_vcl_design", bundleOnly: false },
   { id: "panel-connect", featureId: "connect_files", name: "Browse project files", description: "Open shared Connect files for this job", action: "connect_file_browser", bundleOnly: false },
   { id: "panel-wm", featureId: "wm_designs", name: "Field designs", description: "Review designs this job builds from", action: "worksmanager_design_list", bundleOnly: false },
+  { id: "panel-devices", featureId: "wm_devices", name: "Project devices", description: "View device types and manage assigned equipment", action: "device_management", bundleOnly: false },
   { id: "panel-b2w", featureId: "b2w_estimates", name: "Estimates", description: "Review the estimate behind this bid", action: "b2westimate_list", bundleOnly: false },
   { id: "panel-autobid", featureId: "autobid_bids", name: "Bids", description: "Track bid packages and due dates", action: "autobid_list", bundleOnly: false },
 ];
 
-const DESIGN_BUNDLE_FEATURE_IDS = new Set<string>(DESIGN_WORKFLOW_FEATURES);
-
-function AddPanelModal(props: { allowedFeatureIds?: string[]; onClose: () => void }) {
+function AddPanelModal(props: { onClose: () => void }) {
   const [query, setQuery] = createSignal("");
-  const allowed = createMemo(() => {
-    const ids = props.allowedFeatureIds;
-    if (!ids?.length) return null;
-    return new Set(ids);
-  });
 
   const panels = () => {
     const q = query().trim().toLowerCase();
-    const scope = allowed();
-    const scopeIds = scope ? [...scope] : [];
-    const bundled = scopeIds.length ? isDesignWorkflowBundle(scopeIds) : false;
     const catalog = FEATURE_PANELS.filter((panel) => {
-      if (scope && !scope.has(panel.featureId) && !panel.bundleOnly) return false;
-      if (panel.bundleOnly) return bundled && scope?.has("create_design");
-      if (bundled && DESIGN_BUNDLE_FEATURE_IDS.has(panel.featureId)) return false;
-      return !scope || scope.has(panel.featureId);
+      return !panel.bundleOnly;
     });
     const all = [...catalog.map((panel) => ({ ...panel, saved: false })), ...state.savedWorkflows.map((workflow) => ({ ...workflow, saved: true, featureId: "" }))];
     return all.filter((panel) => PANEL_VIEWS[panel.action] && `${panel.name} ${panel.description}`.toLowerCase().includes(q));
@@ -122,7 +120,7 @@ function AddPanelModal(props: { allowedFeatureIds?: string[]; onClose: () => voi
   );
 }
 
-export function DashboardCanvas(props: { allowedFeatureIds?: string[]; onEdit?: () => void }) {
+export function DashboardCanvas(props: { onEdit?: () => void }) {
   const workflow = () => getActiveSavedWorkflow();
 
   return (

@@ -48,6 +48,16 @@ export interface Design {
   sourceFileIds: string[];
   status: string;
   createdAt: string;
+  type?: string;
+}
+export interface Device {
+  id: string;
+  projectId: string;
+  name: string;
+  type: string;
+  model: string;
+  serial: string;
+  status: "Online" | "Offline" | "Maintenance";
 }
 export interface Entitlement {
   userId: string;
