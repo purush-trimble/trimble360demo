@@ -34,10 +34,12 @@ type Persisted = {
   conversations: Conversation[];
   activeConversationId: string;
   savedWorkflows: SavedWorkflow[];
+  activeSavedWorkflowId?: string;
   preferences: UserPreferences;
   pluginConnections: PluginConnection[];
   dashboards?: Dashboard[];
   activeDashboardId?: string;
+  activeSavedWorkflowId?: string;
 };
 
 function defaultDashboards(): Dashboard[] {
@@ -68,7 +70,7 @@ function normalizeDashboard(raw: LegacyDashboard): Dashboard {
   return { id: raw.id, name: raw.name, panels: raw.panels ?? raw.widgets ?? [] };
 }
 
-const defaultPreferences: UserPreferences = { theme: "system", density: "comfortable", pluginsMenuVisible: true };
+const defaultPreferences: UserPreferences = { theme: "system", density: "comfortable", pluginsMenuVisible: false };
 
 function defaultPluginConnections(): PluginConnection[] {
   const now = new Date().toISOString();
@@ -176,6 +178,7 @@ function normalizePersisted(raw: Persisted & { widgets?: SavedWorkflow[]; dashbo
     ...raw,
     entitlements,
     savedWorkflows: raw.savedWorkflows ?? raw.widgets ?? [],
+    activeSavedWorkflowId: raw.activeSavedWorkflowId,
     dashboards: (raw.dashboards ?? defaultDashboards()).map(normalizeDashboard),
     pluginConnections: pluginConnections.length ? pluginConnections : defaultPluginConnections(),
     preferences: normalizePreferences(raw.preferences),
@@ -214,6 +217,7 @@ const [state, setState] = createStore({
   conversations: initialConv,
   activeConversationId: persisted?.activeConversationId ?? initialConv[0]?.id ?? "",
   savedWorkflows: (persisted?.savedWorkflows ?? []) as SavedWorkflow[],
+  activeSavedWorkflowId: persisted?.activeSavedWorkflowId ?? "",
   preferences: normalizePreferences(persisted?.preferences),
   pluginConnections: persisted?.pluginConnections ?? defaultPluginConnections(),
   dashboards: persisted?.dashboards ?? defaultDashboards(),
@@ -228,6 +232,7 @@ function snapshot(): Persisted {
     conversations: state.conversations,
     activeConversationId: state.activeConversationId,
     savedWorkflows: state.savedWorkflows,
+    activeSavedWorkflowId: state.activeSavedWorkflowId,
     preferences: state.preferences,
     pluginConnections: state.pluginConnections,
     dashboards: state.dashboards,
@@ -244,6 +249,8 @@ export { state };
 export function resetDemoStorage() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem("trimble360-demo-v1");
+  localStorage.removeItem("trimble360-welcomed-demo1");
+  localStorage.removeItem("trimble360-welcomed-demo2");
   const messages = chatMessagesSeed as ChatMessage[];
   const { conversations, activeId } = buildInitialConversation(messages);
   setState({
@@ -253,6 +260,7 @@ export function resetDemoStorage() {
     conversations,
     activeConversationId: activeId,
     savedWorkflows: [],
+    activeSavedWorkflowId: "",
     preferences: defaultPreferences,
     pluginConnections: defaultPluginConnections(),
     dashboards: defaultDashboards(),
@@ -526,8 +534,27 @@ export function saveWorkflow(input: {
   prompt: string;
   action: string;
   productIds: PluginId[];
+  workflowId?: string;
+  config?: SavedWorkflow["config"];
 }) {
   const now = new Date().toISOString();
+  if (input.workflowId) {
+    const index = state.savedWorkflows.findIndex((workflow) => workflow.id === input.workflowId);
+    if (index >= 0) {
+      setState("savedWorkflows", index, {
+        name: input.name.trim() || state.savedWorkflows[index].name,
+        description: input.description,
+        prompt: input.prompt,
+        action: input.action,
+        productIds: input.productIds,
+        config: input.config,
+        updatedAt: now,
+      });
+      setState("activeSavedWorkflowId", input.workflowId);
+      persist();
+      return state.savedWorkflows[index];
+    }
+  }
   const workflow: SavedWorkflow = {
     id: `workflow-${Date.now()}`,
     name: input.name.trim() || "Saved workflow",
@@ -538,10 +565,65 @@ export function saveWorkflow(input: {
     favorite: false,
     createdAt: now,
     updatedAt: now,
+    config: input.config,
   };
   setState("savedWorkflows", (items) => [workflow, ...items]);
+  setState("activeSavedWorkflowId", workflow.id);
   persist();
   return workflow;
+}
+
+export function selectSavedWorkflow(id: string) {
+  if (!state.savedWorkflows.some((workflow) => workflow.id === id)) return;
+  setState("activeSavedWorkflowId", id);
+  persist();
+}
+
+export function getActiveSavedWorkflow() {
+  return state.savedWorkflows.find((workflow) => workflow.id === state.activeSavedWorkflowId) ?? state.savedWorkflows[0];
+}
+
+export function deleteSavedWorkflow(id: string) {
+  setState("savedWorkflows", (items) => items.filter((workflow) => workflow.id !== id));
+  if (state.activeSavedWorkflowId === id) setState("activeSavedWorkflowId", state.savedWorkflows[0]?.id ?? "");
+  persist();
+}
+
+export function openSavedWorkflowInChat(id: string) {
+  const workflow = state.savedWorkflows.find((item) => item.id === id);
+  if (!workflow) return;
+  createConversation();
+  const now = new Date().toISOString();
+  const uiAction = workflow.action === "create_vcl_design"
+    ? { type: "create_vcl_design" as const, workflowId: workflow.id, config: workflow.config }
+    : workflow.action === "create_design"
+      ? { type: "create_design" as const, accountId: "wm-demo", workflowId: workflow.id, config: workflow.config }
+      : workflow.action === "connect_file_browser"
+        ? { type: "connect_file_browser" as const, accountId: "connect-demo" }
+        : workflow.action === "worksmanager_design_list"
+          ? { type: "worksmanager_design_list" as const, accountId: "wm-demo" }
+          : workflow.action === "b2westimate_list"
+            ? { type: "b2westimate_list" as const, accountId: "b2w-demo" }
+            : workflow.action === "autobid_list"
+              ? { type: "autobid_list" as const, accountId: "autobid-demo" }
+              : workflow.action === "publish_connect_to_wm"
+                ? { type: "publish_connect_to_wm" as const }
+      : undefined;
+  const assistantMessage: ChatMessage = {
+    id: `message-${Date.now()}-assistant`,
+    role: "assistant",
+    text: `Edit your saved ${workflow.name} widget, then save the changes.`,
+    uiAction,
+    createdAt: now,
+  };
+  setState("messages", (messages) => [...messages, assistantMessage]);
+  const index = state.conversations.findIndex((conversation) => conversation.id === state.activeConversationId);
+  if (index >= 0) {
+    setState("conversations", index, "messageIds", (ids) => [...ids, assistantMessage.id]);
+    setState("conversations", index, "updatedAt", now);
+  }
+  setState("activeSavedWorkflowId", workflow.id);
+  persist();
 }
 
 export function toggleWorkflowFavorite(id: string) {

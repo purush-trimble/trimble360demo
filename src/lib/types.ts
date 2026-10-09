@@ -66,6 +66,15 @@ export interface Conversation {
 }
 
 /** Agent workflow pinned from chat for quick reuse. */
+export interface SavedWorkflowConfig {
+  sourceId?: string;
+  sourceName?: string;
+  projectId?: string;
+  mediumId?: string;
+  device?: string;
+  designName?: string;
+}
+
 export interface SavedWorkflow {
   id: string;
   name: string;
@@ -76,6 +85,7 @@ export interface SavedWorkflow {
   favorite: boolean;
   createdAt: string;
   updatedAt: string;
+  config?: SavedWorkflowConfig;
 }
 
 /** One product feature rendered on the job dashboard. */

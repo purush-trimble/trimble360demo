@@ -1,6 +1,6 @@
 import { createSignal, Show } from "solid-js";
 import { signIn } from "@/lib/auth";
-import { demoCredentials } from "@/lib/currentUser";
+import { demoUsers } from "@/lib/currentUser";
 import { checkedFromInputChange, textFromInputChange } from "@/lib/modusEvents";
 
 export function LoginPage() {
@@ -17,9 +17,9 @@ export function LoginPage() {
     if (!result.ok) setError(result.message);
   }
 
-  function fillDemoAccount() {
-    setEmail(demoCredentials.email);
-    setPassword(demoCredentials.password);
+  function fillDemoAccount(account: (typeof demoUsers)[number]) {
+    setEmail(account.email);
+    setPassword(account.password);
     setError("");
     setHint("Demo account filled. Sign in to open the workspace.");
   }
@@ -97,7 +97,7 @@ export function LoginPage() {
                   class="text-sm font-medium text-blue-700 hover:underline"
                   onClick={() => {
                     setError("");
-                    setHint(`This is a mock sign-in. Use ${demoCredentials.email} / ${demoCredentials.password}.`);
+                    setHint(`This is a mock sign-in. Use ${demoUsers.map((user) => `${user.email} / ${user.password}`).join(" or ")}.`);
                   }}
                 >
                   Forgot password?
@@ -106,12 +106,22 @@ export function LoginPage() {
               <modus-wc-button type="submit" color="primary" variant="filled" full-width={true} on:buttonClick={() => submit()}>
                 Sign in
               </modus-wc-button>
-              <modus-wc-button type="button" color="neutral" variant="outlined" full-width={true} on:buttonClick={fillDemoAccount}>
-                Fill demo account
-              </modus-wc-button>
+              <div class="grid gap-2 sm:grid-cols-2">
+                {demoUsers.map((user) => (
+                  <modus-wc-button
+                    type="button"
+                    color="neutral"
+                    variant="outlined"
+                    full-width={true}
+                    on:buttonClick={() => fillDemoAccount(user)}
+                  >
+                    Fill {user.id}
+                  </modus-wc-button>
+                ))}
+              </div>
             </form>
             <p slot="footer" class="text-sm text-slate-500">
-              Demo login: {demoCredentials.email} / {demoCredentials.password}
+              Demo logins: {demoUsers.map((user) => `${user.email} / ${user.password}`).join(" · ")}
             </p>
           </modus-wc-card>
         </div>

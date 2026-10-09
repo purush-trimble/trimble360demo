@@ -1,30 +1,58 @@
 [
   {
-    "userId": "demo-user",
+    "userId": "demo1",
     "pluginId": "connect",
     "subscriptionAccountId": "connect-demo",
     "plan": "Connect Pro",
     "active": true
   },
   {
-    "userId": "demo-user",
+    "userId": "demo1",
     "pluginId": "worksmanager",
     "subscriptionAccountId": "wm-demo",
     "plan": "Pro",
     "active": true
   },
   {
-    "userId": "demo-user",
+    "userId": "demo1",
     "pluginId": "b2westimate",
     "subscriptionAccountId": "b2w-demo",
     "plan": "B2W Estimate Professional",
-    "active": true
+    "active": false
   },
   {
-    "userId": "demo-user",
+    "userId": "demo1",
     "pluginId": "autobid",
     "subscriptionAccountId": "autobid-demo",
     "plan": "AutoBid Enterprise",
+    "active": false
+  },
+  {
+    "userId": "demo2",
+    "pluginId": "connect",
+    "subscriptionAccountId": "connect-demo2",
+    "plan": "Connect Pro",
+    "active": false
+  },
+  {
+    "userId": "demo2",
+    "pluginId": "worksmanager",
+    "subscriptionAccountId": "wm-demo2",
+    "plan": "Pro",
     "active": true
+  },
+  {
+    "userId": "demo2",
+    "pluginId": "b2westimate",
+    "subscriptionAccountId": "b2w-demo2",
+    "plan": "B2W Estimate Professional",
+    "active": false
+  },
+  {
+    "userId": "demo2",
+    "pluginId": "autobid",
+    "subscriptionAccountId": "autobid-demo2",
+    "plan": "AutoBid Enterprise",
+    "active": false
   }
 ]

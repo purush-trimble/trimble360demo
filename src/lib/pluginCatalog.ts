@@ -61,6 +61,10 @@ export function listPluginCatalog(): PluginCatalogEntry[] {
   return Object.values(PLUGIN_CATALOG);
 }
 
+export function userFacingProducts(pluginIds: PluginId[]): string[] {
+  return [...new Set(pluginIds)].map((id) => PLUGIN_CATALOG[id].name);
+}
+
 /** ponytail: naive format check; upgrade path = real Trimble identity API */
 export function validateFchid(raw: string): { ok: true; value: string } | { ok: false; message: string } {
   const value = raw.trim();

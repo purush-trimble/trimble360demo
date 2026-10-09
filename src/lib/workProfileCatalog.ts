@@ -108,7 +108,7 @@ export const SOLUTIONS: Solution[] = [
     name: "Site planning and coordination",
     description: "Align the team on the site model before work starts.",
     pluginIds: ["connect", "worksmanager"],
-    featureIds: ["connect_files", "create_design"],
+    featureIds: ["connect_files", "create_design", "create_vcl_design"],
   },
   {
     id: "assets",
@@ -178,7 +178,7 @@ export const SOLUTIONS: Solution[] = [
     name: "Machine control",
     description: "Publish designs the machines on this job can run.",
     pluginIds: ["connect", "worksmanager"],
-    featureIds: ["publish_to_wm", "wm_designs"],
+    featureIds: ["publish_to_wm", "wm_designs", "create_vcl_design"],
   },
   {
     id: "survey",
@@ -333,6 +333,15 @@ export const FEATURES: ProductFeature[] = [
     prompt: "create a design",
   },
   {
+    id: "create_vcl_design",
+    productId: "worksmanager",
+    alsoRequires: ["connect"],
+    name: "Create a VCL design",
+    description: "Import a VCL source and target it to the right project, medium, and device.",
+    phase: "build",
+    prompt: "create a VCL design",
+  },
+  {
     id: "wm_designs",
     productId: "worksmanager",
     name: "Field designs",
@@ -368,6 +377,15 @@ export const FEATURES: ProductFeature[] = [
 ];
 
 export const ACTIVITY_WIDGETS: ActivityWidget[] = [
+  {
+    id: "vcl-design",
+    name: "Create a VCL design",
+    intent: "execute",
+    phases: ["design", "build"],
+    valueStory: "Import a VCL file and prepare it for the correct project, field medium, and device.",
+    solutionIds: ["site-planning", "machine-control"],
+    featureIds: ["create_vcl_design"],
+  },
   {
     id: "design-to-field",
     name: "Create, compare, publish",
@@ -700,6 +718,7 @@ export function orderedFeatures(features: ProductFeature[], phase: LifecyclePhas
 export const FEATURE_ACTION: Record<string, string> = {
   connect_files: "connect_file_browser",
   create_design: "create_design",
+  create_vcl_design: "create_vcl_design",
   wm_designs: "worksmanager_design_list",
   publish_to_wm: "publish_connect_to_wm",
   b2w_estimates: "b2westimate_list",

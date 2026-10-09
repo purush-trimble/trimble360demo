@@ -1,6 +1,7 @@
 import { ModusButton } from "@/components/modus/ModusButton";
 import { saveWorkflow } from "@/lib/mockStore";
 import type { PluginId } from "@/lib/types";
+import type { SavedWorkflowConfig } from "@/lib/types";
 
 export function SaveWorkflowButton(props: {
   name: string;
@@ -8,6 +9,8 @@ export function SaveWorkflowButton(props: {
   prompt: string;
   action: string;
   productIds: PluginId[];
+  workflowId?: string;
+  config?: SavedWorkflowConfig;
 }) {
   return (
     <ModusButton
@@ -19,10 +22,12 @@ export function SaveWorkflowButton(props: {
           prompt: props.prompt,
           action: props.action,
           productIds: props.productIds,
+          workflowId: props.workflowId,
+          config: props.config,
         })
       }
     >
-      Save workflow
+      {props.workflowId ? "Save changes" : "Save workflow"}
     </ModusButton>
   );
 }

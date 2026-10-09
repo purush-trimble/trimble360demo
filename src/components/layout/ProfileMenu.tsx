@@ -1,19 +1,11 @@
 import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { ThemeSettings } from "@/components/layout/ThemeSettings";
-import { setPreferences, state } from "@/lib/mockStore";
+import { signOut } from "@/lib/auth";
 import { currentUser } from "@/lib/currentUser";
 
-export function ProfileMenu(props: {
-  onOpenPlugins: () => void;
-}) {
+export function ProfileMenu() {
   const [open, setOpen] = createSignal(false);
   let root: HTMLDivElement | undefined;
-
-  const pluginsMenuVisible = () => state.preferences.pluginsMenuVisible;
-
-  function togglePluginsNav() {
-    setPreferences({ pluginsMenuVisible: !state.preferences.pluginsMenuVisible });
-  }
 
   onMount(() => {
     const onDoc = (event: MouseEvent) => {
@@ -42,19 +34,9 @@ export function ProfileMenu(props: {
             <span>Theme</span>
             <ThemeSettings />
           </div>
-          <label class="byop-profile-toggle">
-            <span>Show plugins menu</span>
-            <input
-              type="checkbox"
-              checked={pluginsMenuVisible()}
-              onChange={togglePluginsNav}
-            />
-          </label>
-          <Show when={pluginsMenuVisible()}>
-            <button type="button" class="byop-profile-menu-item" role="menuitem" onClick={() => { setOpen(false); props.onOpenPlugins(); }}>
-              Manage plugins
-            </button>
-          </Show>
+          <button type="button" class="byop-profile-menu-item" role="menuitem" onClick={() => { setOpen(false); signOut(); }}>
+            Sign out
+          </button>
         </div>
       </Show>
     </div>
