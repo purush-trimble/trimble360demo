@@ -1,0 +1,1 @@
+var e={xs:`sm`,sm:`md`,md:`lg`,lg:`lg`},t={xs:`sm`,sm:`sm`,md:`md`,lg:`lg`,xl:`lg`};export{t as n,e as t};
