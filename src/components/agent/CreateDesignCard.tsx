@@ -1,15 +1,13 @@
 import { createSignal } from "solid-js";
 import { ModusButton } from "@/components/modus/ModusButton";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
-import { createDesign, getEntitlements } from "@/lib/mockStore";
-import { currentUser } from "@/lib/currentUser";
+import { createDesign } from "@/lib/mockStore";
 
 export function CreateDesignCard(props: { onCreated: () => void }) {
   const [name, setName] = createSignal("North Ridge imported design");
   const [fileIds, setFileIds] = createSignal<string[]>([]);
   const [showConnect, setShowConnect] = createSignal(false);
   const [creating, setCreating] = createSignal(false);
-  const hasConnect = () => getEntitlements().some((item) => item.userId === currentUser.id && item.pluginId === "connect" && item.active);
 
   async function create() {
     if (!fileIds().length) return;
@@ -43,7 +41,6 @@ export function CreateDesignCard(props: { onCreated: () => void }) {
           <div class="mt-4">
             <ConnectPluginCard
               pickerOnly
-              showProductName={hasConnect()}
               onFilesSelected={(ids) => {
                 setFileIds(ids);
                 setShowConnect(false);

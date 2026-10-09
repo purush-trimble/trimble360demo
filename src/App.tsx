@@ -6,13 +6,7 @@ import { WelcomePage } from "@/components/WelcomePage";
 import { ChatSidebar } from "@/components/layout/ChatSidebar";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { isAuthenticated } from "@/lib/auth";
-import {
-  beginPluginConnect,
-  completePluginConnect,
-  isPluginConnected,
-  listConnectablePluginIds,
-  saveWorkflow,
-} from "@/lib/mockStore";
+import { saveWorkflow } from "@/lib/mockStore";
 import { markWelcomed, hasSeenWelcome, type WelcomeWorkflow } from "@/lib/welcomeWorkflows";
 import { promptsFor, selectionFromWidget, widgetById } from "@/lib/workProfileCatalog";
 
@@ -31,10 +25,6 @@ function Workspace() {
   const [view, setView] = createSignal<AppView>(hasSeenWelcome() ? "workspace" : "welcome");
   const [tab, setTab] = createSignal<"chats" | "dashboard">(hasSeenWelcome() ? "chats" : "dashboard");
 
-  const scopedPlugins = createMemo(() => {
-    return listConnectablePluginIds().filter((id) => isPluginConnected(id));
-  });
-
   const suggestedPrompts = createMemo(() => promptsFor([]));
 
   function continueToChat() {
@@ -46,11 +36,6 @@ function Workspace() {
   function launchWorkflow(workflow: WelcomeWorkflow) {
     const widget = widgetById(workflow.widgetId);
     if (!widget) return continueToChat();
-    for (const pluginId of listConnectablePluginIds()) {
-      if (isPluginConnected(pluginId)) continue;
-      const result = beginPluginConnect(pluginId, `FCHID-DEMO-${pluginId.toUpperCase()}-88442211`);
-      if (result.ok) completePluginConnect(pluginId);
-    }
     const selected = selectionFromWidget("acct-morgan", widget);
     markWelcomed();
     saveWorkflow({
@@ -99,7 +84,6 @@ function Workspace() {
               <ChatSidebar
                 open={chatMenuOpen()}
                 onToggleOpen={() => setChatMenuOpen((open) => !open)}
-                connectedProducts={scopedPlugins()}
                 activeTab={tab()}
                 onTabChange={setTab}
               />
@@ -108,7 +92,6 @@ function Workspace() {
           <Show when={tab() === "chats"} fallback={<DashboardCanvas onEdit={() => setTab("chats")} />}>
             <main class="byop-view-enter flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:p-7">
               <ChatWindow
-                mountedPlugins={scopedPlugins()}
                 suggestedPrompts={suggestedPrompts()}
                 onCreated={() => undefined}
               />

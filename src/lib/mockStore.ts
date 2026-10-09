@@ -7,11 +7,10 @@ import worksmanagerProjectsSeed from "@/mock-data/worksmanager-projects.json";
 import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
 import autobidsSeed from "@/mock-data/autobids.json";
 import devicesSeed from "@/mock-data/devices.json";
-import { currentUser } from "@/lib/currentUser";
 import { resolveIntent } from "@/lib/agent/intentRouter";
 import { dashboardPanelsForFeatures } from "@/lib/workProfileCatalog";
 import type { ChatMessage } from "@/lib/agent/types";
-import { normalizeWorksManagerPlan, validateFchid } from "@/lib/pluginCatalog";
+import { normalizeWorksManagerPlan } from "@/lib/pluginCatalog";
 import type {
   Conversation,
   Dashboard,
@@ -434,96 +433,6 @@ export function removeDashboardPanel(panelId: string) {
   persist();
 }
 
-export function getPluginConnections() {
-  return state.pluginConnections;
-}
-
-export function getPluginConnection(pluginId: PluginId) {
-  return state.pluginConnections.find((c) => c.pluginId === pluginId);
-}
-
-export function isPluginConnected(pluginId: PluginId) {
-  return getPluginConnection(pluginId)?.status === "connected";
-}
-
-export function listConnectablePluginIds(): PluginId[] {
-  return getEntitlements()
-    .filter((e) => e.active)
-    .map((e) => e.pluginId);
-}
-
-export function beginPluginConnect(pluginId: PluginId, fchid: string) {
-  const check = validateFchid(fchid);
-  const now = new Date().toISOString();
-  const index = state.pluginConnections.findIndex((c) => c.pluginId === pluginId);
-  if (!check.ok) {
-    const errorRow: PluginConnection = {
-      pluginId,
-      status: "error",
-      fchid: fchid.trim(),
-      lastError: check.message,
-      updatedAt: now,
-    };
-    if (index >= 0) setState("pluginConnections", index, errorRow);
-    else setState("pluginConnections", (rows) => [...rows, errorRow]);
-    persist();
-    return { ok: false as const, message: check.message };
-  }
-  const pending: PluginConnection = {
-    pluginId,
-    status: "pending",
-    fchid: check.value,
-    lastError: undefined,
-    updatedAt: now,
-  };
-  if (index >= 0) setState("pluginConnections", index, pending);
-  else setState("pluginConnections", (rows) => [...rows, pending]);
-  persist();
-  return { ok: true as const, pluginId };
-}
-
-export function completePluginConnect(pluginId: PluginId) {
-  const index = state.pluginConnections.findIndex((c) => c.pluginId === pluginId);
-  if (index < 0) return;
-  const row = state.pluginConnections[index];
-  if (row.status !== "pending") return;
-  const now = new Date().toISOString();
-  setState("pluginConnections", index, {
-    ...row,
-    status: "connected",
-    connectedAt: now,
-    updatedAt: now,
-    lastError: undefined,
-  });
-  persist();
-}
-
-export function disconnectPlugin(pluginId: PluginId) {
-  const index = state.pluginConnections.findIndex((c) => c.pluginId === pluginId);
-  const now = new Date().toISOString();
-  const disconnected: PluginConnection = {
-    pluginId,
-    status: "disconnected",
-    updatedAt: now,
-  };
-  if (index >= 0) setState("pluginConnections", index, disconnected);
-  else setState("pluginConnections", (rows) => [...rows, disconnected]);
-  persist();
-}
-
-export function getEntitlements() {
-  return state.entitlements.filter((item) => item.userId === currentUser.id);
-}
-
-export function toggleEntitlement(pluginId: PluginId) {
-  const index = state.entitlements.findIndex((item) => item.userId === currentUser.id && item.pluginId === pluginId);
-  if (index < 0) return null;
-  const next = { ...state.entitlements[index], active: !state.entitlements[index].active };
-  setState("entitlements", index, next);
-  persist();
-  return next;
-}
-
 export function getActiveConversationId() {
   return state.activeConversationId;
 }
@@ -602,7 +511,7 @@ function replaceAssistantMessage(messageId: string, text: string, uiAction: Chat
   persist();
 }
 
-export function sendMessage(text: string, mountedPlugins: PluginId[]) {
+export function sendMessage(text: string) {
   const trimmed = text.trim();
   if (!trimmed) return null;
   let conversationId = state.activeConversationId;
@@ -610,11 +519,7 @@ export function sendMessage(text: string, mountedPlugins: PluginId[]) {
     createConversation();
     conversationId = state.activeConversationId;
   }
-  const entitlements = getEntitlements();
-  const result = resolveIntent(trimmed, {
-    mountedPlugins: new Set(mountedPlugins),
-    entitlements,
-  });
+  const result = resolveIntent(trimmed);
   const now = new Date().toISOString();
   const userMessage: ChatMessage = { id: `message-${Date.now()}`, role: "user", text: trimmed, createdAt: now };
   const stagedTarget = result.uiAction?.type === "worksmanager_design_list" || result.uiAction?.type === "device_management"

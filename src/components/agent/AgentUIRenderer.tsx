@@ -7,7 +7,6 @@ import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCar
 import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { CreateDesignCard } from "./CreateDesignCard";
 import { CreateVclDesignCard } from "./CreateVclDesignCard";
-import { EntitlementUpsellCard } from "./EntitlementUpsellCard";
 import { PublishConnectToWmCard } from "./PublishConnectToWmCard";
 import { SaveWorkflowButton } from "./SaveWorkflowButton";
 import { SuggestionChips } from "./SuggestionChips";
@@ -130,8 +129,6 @@ export function AgentUIRenderer(props: {
       );
     case "publish_connect_to_wm":
       return <PublishConnectToWmCard defaultPrompt="Publish a Connect design to WorksManager" />;
-    case "entitlement_upsell":
-      return <EntitlementUpsellCard pluginId={props.action.pluginId} reason={props.action.reason} />;
     case "suggestions":
       return <SuggestionChips prompts={props.action.prompts} onSelect={props.onPrompt} />;
     case "text":

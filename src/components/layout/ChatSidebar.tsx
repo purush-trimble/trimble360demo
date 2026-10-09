@@ -26,7 +26,6 @@ import {
 
 } from "@/lib/mockStore";
 
-import type { PluginId } from "@/lib/types";
 
 
 
@@ -112,8 +111,6 @@ export function ChatSidebar(props: {
   open: boolean;
 
   onToggleOpen: () => void;
-
-  connectedProducts: PluginId[];
 
   activeTab: "chats" | "dashboard";
 

@@ -1,6 +1,5 @@
 import type { PluginId } from "@/lib/types";
 import { currentUser } from "@/lib/currentUser";
-import { getEntitlements } from "@/lib/mockStore";
 import { userFacingProducts } from "@/lib/pluginCatalog";
 
 export type WelcomeWorkflow = {
@@ -55,13 +54,11 @@ export function clearWelcomeState() {
 }
 
 export function availableWelcomeWorkflows() {
-  const licensed = new Set(getEntitlements().filter((item) => item.active).map((item) => item.pluginId));
-  return WELCOME_WORKFLOWS.filter((workflow) => workflow.productIds.every((id) => licensed.has(id)));
+  return WELCOME_WORKFLOWS;
 }
 
 export function productLabelsForWelcome(workflow: WelcomeWorkflow) {
-  const licensed = new Set(getEntitlements().filter((item) => item.active).map((item) => item.pluginId));
-  return userFacingProducts(workflow.productIds.filter((id) => licensed.has(id)));
+  return userFacingProducts(workflow.productIds);
 }
 
 if (import.meta.env.DEV) {

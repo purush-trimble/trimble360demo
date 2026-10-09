@@ -5,8 +5,6 @@ import { SuggestionChips } from "@/components/agent/SuggestionChips";
 import { currentUser } from "@/lib/currentUser";
 import { completeProjectSelection, sendMessage, state } from "@/lib/mockStore";
 import type { ChatMessage } from "@/lib/agent/types";
-import type { PluginId } from "@/lib/types";
-
 function activeMessageIds() {
   const conv = state.conversations.find((c) => c.id === state.activeConversationId);
   return conv?.messageIds ?? [];
@@ -60,7 +58,6 @@ function ChatMessageRow(props: {
 }
 
 export function ChatWindow(props: {
-  mountedPlugins: PluginId[];
   suggestedPrompts?: string[];
   onCreated: () => void;
   onSend?: (text: string) => void;
@@ -88,7 +85,7 @@ export function ChatWindow(props: {
     const trimmed = value.trim();
     if (!trimmed) return;
     setText("");
-    sendMessage(trimmed, props.mountedPlugins);
+    sendMessage(trimmed);
     props.onSend?.(trimmed);
   }
 
@@ -114,7 +111,7 @@ export function ChatWindow(props: {
                 when={prompts().length}
                 fallback={
                   <p class="opacity-75">
-                    Connect licensed products from Plugins, then ask for files, designs, estimates, or bids.
+                    Ask for files, designs, estimates, or bids.
                   </p>
                 }
               >
