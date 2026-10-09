@@ -30,29 +30,29 @@ export function LoginPage() {
         <div class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/10" />
         <div class="pointer-events-none absolute -bottom-16 -left-10 h-64 w-64 rounded-full bg-black/10" />
         <div class="relative">
-          <p class="text-sm font-semibold tracking-wide text-white/80">Trimble Identity</p>
-          <h1 class="mt-6 max-w-lg text-4xl font-bold leading-tight">Build Your Own Product</h1>
+          <p class="text-sm font-semibold tracking-wide text-white/80">Trimble 360</p>
+          <h1 class="mt-6 max-w-lg text-4xl font-bold leading-tight">Role-ready project handbook</h1>
           <p class="mt-4 max-w-md text-lg text-white/85">
-            Sign in to compose licensed Trimble product workflows through chat.
+            Sign in to set up work profiles and compose licensed Trimble workflow widgets for each job.
           </p>
         </div>
         <ul class="relative space-y-3 text-sm text-white/90">
-          <li>Launch Trimble Connect and WorksManager in one workspace.</li>
-          <li>Ask the assistant to create designs and browse project files.</li>
-          <li>Toggle mock subscriptions while you demo the flow.</li>
+          <li>Pick account, project, and widgets tuned to your project phase.</li>
+          <li>Chat with the assistant — only tools in your work profile appear.</li>
+          <li>Use the job view for status panels and execution tools without switching apps.</li>
         </ul>
       </section>
 
       <section class="flex items-center justify-center bg-slate-50 px-5 py-10 sm:px-8">
         <div class="w-full max-w-md">
           <div class="mb-8 lg:hidden">
-            <p class="text-sm font-semibold text-blue-700">Trimble Identity</p>
-            <h1 class="mt-1 text-3xl font-bold text-slate-900">Build Your Own Product</h1>
+            <p class="text-sm font-semibold text-blue-700">Trimble 360</p>
+            <h1 class="mt-1 text-3xl font-bold text-slate-900">Role-ready project handbook</h1>
           </div>
           <modus-wc-logo name="trimble" alt="Trimble" custom-class="login-trimble-logo" />
           <modus-wc-card bordered padding="comfortable" class="login-card mt-6 w-full">
             <span slot="title">Sign in</span>
-            <span slot="subtitle">Use your Trimble ID for this demo workspace.</span>
+            <span slot="subtitle">Use your Trimble ID to open this demo workspace and set up your first work profile.</span>
             <form class="flex flex-col gap-4" onSubmit={submit}>
               <Show when={error()}>
                 <modus-wc-alert variant="error" alert-title={error()} role="alert" />
