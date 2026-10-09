@@ -6,16 +6,18 @@ export type WelcomeWorkflow = {
   id: string;
   title: string;
   description: string;
-  widgetId: string;
+  widgetId?: string;
+  /** Opens the existing saved dashboard widget with this action instead of building one. */
+  savedAction?: string;
   productIds: PluginId[];
 };
 
 export const WELCOME_WORKFLOWS: WelcomeWorkflow[] = [
   {
-    id: "create-design",
-    title: "Create a design",
-    description: "Turn your project files into a machine-ready design.",
-    widgetId: "design-to-field",
+    id: "project-designs",
+    title: "Project designs",
+    description: "View the designs in your WorksManager project.",
+    savedAction: "worksmanager_design_list",
     productIds: ["worksmanager"],
   },
   {
@@ -62,7 +64,7 @@ export function productLabelsForWelcome(workflow: WelcomeWorkflow) {
 }
 
 if (import.meta.env.DEV) {
-  if (!WELCOME_WORKFLOWS.some((workflow) => workflow.id === "create-design")) {
+  if (!WELCOME_WORKFLOWS.some((workflow) => workflow.id === "project-designs")) {
     console.error("welcome workflow self-check failed");
   }
 }

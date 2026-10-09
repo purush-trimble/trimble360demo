@@ -7,7 +7,7 @@ import { WelcomePage } from "@/components/WelcomePage";
 import { ChatSidebar } from "@/components/layout/ChatSidebar";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { isAuthenticated } from "@/lib/auth";
-import { saveWorkflow } from "@/lib/mockStore";
+import { saveWorkflow, selectSavedWorkflow, state } from "@/lib/mockStore";
 import { markWelcomed, hasSeenWelcome, type WelcomeWorkflow } from "@/lib/welcomeWorkflows";
 import { currentUser } from "@/lib/currentUser";
 import { selectionFromWidget, widgetById } from "@/lib/workProfileCatalog";
@@ -36,7 +36,15 @@ function Workspace() {
   }
 
   function launchWorkflow(workflow: WelcomeWorkflow) {
-    const widget = widgetById(workflow.widgetId);
+    const saved = state.savedWorkflows.find((item) => item.action === workflow.savedAction);
+    if (saved) {
+      selectSavedWorkflow(saved.id);
+      markWelcomed();
+      setTab("dashboard");
+      setView("workspace");
+      return;
+    }
+    const widget = widgetById(workflow.widgetId ?? "");
     if (!widget) return continueToChat();
     const selected = selectionFromWidget("acct-morgan", widget);
     markWelcomed();
