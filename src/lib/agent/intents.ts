@@ -1,7 +1,7 @@
+import type { DesignListLayout } from "@/lib/types";
 import type { AgentUIAction } from "./types";
 
-export const DEFAULT_PROMPTS = [
-  "Publish a Connect design to WorksManager",
+export const DEFAULT_PROMPTS = [  "Publish a Connect design to WorksManager",
   "Create a design",
   "Show my Connect files",
   "Show my designs",
@@ -33,7 +33,7 @@ export const INTENTS: Intent[] = [
   {
     featureId: "create_design",
     matches: (text) => /\b(create|new|make)\b.*\bdesign\b/i.test(text) && !/\bvcl\b/i.test(text),
-    respond: () => ({ type: "create_design", accountId: "wm-demo", suggestedName: "North Ridge imported design" }),
+    respond: () => ({ type: "create_vcl_design" }),
   },
   {
     featureId: "connect_files",
@@ -63,3 +63,21 @@ export const INTENTS: Intent[] = [
     respond: () => ({ type: "autobid_list", accountId: "autobid-demo" }),
   },
 ];
+
+/** Chat edit for a saved project-designs widget: "change to a card layout", "show as a table". */
+export function parseDesignLayout(text: string, current: DesignListLayout = "table"): DesignListLayout | undefined {
+  const wantsLayout =
+    /\b((new\s+)?layout|card view|table view|grid view)\b/i.test(text) ||
+    /\b(change|switch|use|show|make|set)\b.*\b(cards?|grid|tiles?|table|list)\b/i.test(text) ||
+    /\b(cards?|grid|tiles?|table)\s+(layout|view)\b/i.test(text);
+  if (!wantsLayout) return;
+  if (/\b(table|list)\b/i.test(text) && !/\b(cards?|grid|tiles?)\b/i.test(text)) return "table";
+  if (/\b(cards?|grid|tiles?)\b/i.test(text)) return "cards";
+  return current === "cards" ? "table" : "cards";
+}
+
+if (import.meta.env.DEV) {
+  if (parseDesignLayout("change to a card layout") !== "cards" || parseDesignLayout("show as a table") !== "table" || parseDesignLayout("change to a new layout", "table") !== "cards" || parseDesignLayout("show my designs")) {
+    console.error("parseDesignLayout self-check failed");
+  }
+}

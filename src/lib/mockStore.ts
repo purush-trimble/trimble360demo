@@ -7,8 +7,9 @@ import worksmanagerProjectsSeed from "@/mock-data/worksmanager-projects.json";
 import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
 import autobidsSeed from "@/mock-data/autobids.json";
 import devicesSeed from "@/mock-data/devices.json";
+import { parseDesignLayout } from "@/lib/agent/intents";
 import { resolveIntent } from "@/lib/agent/intentRouter";
-import { demoUsers } from "@/lib/currentUser";
+import { currentUser, demoUsers, userName } from "@/lib/currentUser";
 import { dashboardPanelsForFeatures } from "@/lib/workProfileCatalog";
 import type { ChatMessage } from "@/lib/agent/types";
 import { normalizeWorksManagerPlan } from "@/lib/pluginCatalog";
@@ -19,6 +20,7 @@ import type {
   Entitlement,
   PluginConnection,
   PluginId,
+  DesignListLayout,
   SavedWorkflow,
   UserPreferences,
   AutoBid,
@@ -58,14 +60,34 @@ function buildProjectScopedUiAction(
   targetAction: ProjectScopedAction,
   projectId: string,
   workflowId?: string,
+  layout?: DesignListLayout,
 ): NonNullable<ChatMessage["uiAction"]> {
   const project = state.projects.find((item) => item.id === projectId);
   const projectName = project?.name ?? "Project";
-  const config = { projectId };
+  const saved = workflowId ? state.savedWorkflows.find((workflow) => workflow.id === workflowId) : undefined;
+  const config = { ...saved?.config, projectId, ...(layout ? { layout } : {}) };
   if (targetAction === "worksmanager_design_list") {
     return { type: "worksmanager_design_list", accountId: "wm-demo", projectId, projectName, config, workflowId };
   }
   return { type: "device_management", projectId, projectName, config, workflowId };
+}
+
+function findDesignsEditContext(): { projectId?: string; workflowId?: string; layout: DesignListLayout } {
+  const selected = state.savedWorkflows.find((workflow) => workflow.id === state.activeSavedWorkflowId);
+  const fallback = getActiveSavedWorkflow();
+  const active = selected?.action === "worksmanager_design_list" ? selected : fallback?.action === "worksmanager_design_list" ? fallback : undefined;
+  if (active) return { projectId: active.config?.projectId, workflowId: active.id, layout: active.config?.layout === "cards" ? "cards" : "table" };
+  const conversation = getActiveConversation();
+  for (const id of [...(conversation?.messageIds ?? [])].reverse()) {
+    const action = state.messages.find((message) => message.id === id)?.uiAction;
+    if (action?.type !== "worksmanager_design_list") continue;
+    return {
+      projectId: action.projectId ?? action.config?.projectId,
+      workflowId: action.workflowId,
+      layout: action.config?.layout === "cards" ? "cards" : "table",
+    };
+  }
+  return { layout: "table" };
 }
 
 function persistProjectOnSavedWorkflow(workflowId: string | undefined, projectId: string) {
@@ -105,6 +127,18 @@ function scheduleProjectScopedResult(
 
 const starterWorkflows: SavedWorkflow[] = [
   {
+    id: "workflow-project-designs",
+    name: "Project designs",
+    description: "View designs in a WorksManager project",
+    prompt: "show my designs",
+    action: "worksmanager_design_list",
+    productIds: ["worksmanager"],
+    favorite: false,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    config: { projectId: "proj-north-ridge", layout: "table" },
+  },
+  {
     id: "workflow-vcl-design",
     name: "Create a VCL design",
     description: "Import and prepare a VCL file for a field device",
@@ -118,7 +152,7 @@ const starterWorkflows: SavedWorkflow[] = [
 ];
 
 function withStarterWorkflows(saved: SavedWorkflow[]) {
-  const userWorkflows = saved.filter((workflow) => !["workflow-project-designs", "workflow-project-devices"].includes(workflow.id));
+  const userWorkflows = saved.filter((workflow) => workflow.id !== "workflow-project-devices");
   const existingActions = new Set(userWorkflows.map((workflow) => workflow.action));
   return [...userWorkflows, ...starterWorkflows.filter((workflow) => !existingActions.has(workflow.action))];
 }
@@ -519,12 +553,26 @@ export function sendMessage(text: string) {
     createConversation();
     conversationId = state.activeConversationId;
   }
-  const result = resolveIntent(trimmed);
+  const designsContext = findDesignsEditContext();
+  const layoutRequest = parseDesignLayout(trimmed, designsContext.layout);
+  const result = layoutRequest && designsContext.projectId
+    ? {
+      assistantText: layoutRequest === "cards"
+        ? "Here's your project designs in a card layout. Save the workflow to keep this view."
+        : "Here's your project designs as a table. Save the workflow to keep this view.",
+      uiAction: buildProjectScopedUiAction("worksmanager_design_list", designsContext.projectId, designsContext.workflowId, layoutRequest),
+    }
+    : layoutRequest
+      ? { assistantText: "Open the Project designs workflow, then ask me to change the layout.", uiAction: undefined }
+      : resolveIntent(trimmed);
   const now = new Date().toISOString();
   const userMessage: ChatMessage = { id: `message-${Date.now()}`, role: "user", text: trimmed, createdAt: now };
-  const stagedTarget = result.uiAction?.type === "worksmanager_design_list" || result.uiAction?.type === "device_management"
-    ? result.uiAction.type
-    : undefined;
+  const alreadyScoped = (result.uiAction?.type === "worksmanager_design_list" || result.uiAction?.type === "device_management") && Boolean(result.uiAction.projectId);
+  const stagedTarget = alreadyScoped
+    ? undefined
+    : result.uiAction?.type === "worksmanager_design_list" || result.uiAction?.type === "device_management"
+      ? result.uiAction.type
+      : undefined;
   const savedWorkflow = stagedTarget ? findSavedWorkflowForPrompt(trimmed, stagedTarget) : undefined;
   const savedProjectId = savedWorkflow?.config?.projectId;
   const assistantMessage: ChatMessage = {
@@ -602,22 +650,31 @@ export function saveWorkflow(input: {
   config?: SavedWorkflow["config"];
 }) {
   const now = new Date().toISOString();
-  if (input.workflowId) {
-    const index = state.savedWorkflows.findIndex((workflow) => workflow.id === input.workflowId);
-    if (index >= 0) {
-      setState("savedWorkflows", index, {
-        name: input.name.trim() || state.savedWorkflows[index].name,
-        description: input.description,
-        prompt: input.prompt,
-        action: input.action,
-        productIds: input.productIds,
-        config: input.config ?? state.savedWorkflows[index].config,
-        updatedAt: now,
-      });
-      setState("activeSavedWorkflowId", input.workflowId);
-      persist();
-      return state.savedWorkflows[index];
-    }
+  const normalizedPrompt = input.prompt.trim().toLowerCase();
+  const sameConfig = (config?: SavedWorkflow["config"]) =>
+    JSON.stringify(config ?? {}) === JSON.stringify(input.config ?? {});
+  const index = state.savedWorkflows.findIndex((workflow) =>
+    workflow.id === input.workflowId ||
+    (
+      workflow.action === input.action &&
+      workflow.prompt.trim().toLowerCase() === normalizedPrompt &&
+      sameConfig(workflow.config)
+    ),
+  );
+  if (index >= 0) {
+    const existing = state.savedWorkflows[index];
+    setState("savedWorkflows", index, {
+      name: input.name.trim() || existing.name,
+      description: input.description,
+      prompt: input.prompt,
+      action: input.action,
+      productIds: input.productIds,
+      config: input.config ?? existing.config,
+      updatedAt: now,
+    });
+    setState("activeSavedWorkflowId", existing.id);
+    persist();
+    return state.savedWorkflows[index];
   }
   const workflow: SavedWorkflow = {
     id: `workflow-${Date.now()}`,
@@ -701,7 +758,9 @@ export function openSavedWorkflowInChat(id: string) {
   const assistantMessage: ChatMessage = {
     id: `message-${Date.now()}-assistant`,
     role: "assistant",
-    text: `Edit your saved ${workflow.name} widget, then save the changes.`,
+    text: workflow.action === "worksmanager_design_list"
+      ? `Edit your saved ${workflow.name} widget, then save the changes. Ask me to switch to a card layout if you want a different view.`
+      : `Edit your saved ${workflow.name} widget, then save the changes.`,
     uiAction,
     createdAt: now,
   };
@@ -768,23 +827,98 @@ export function addDevice(input: Omit<Device, "id" | "status">) {
   return { ok: true as const, device };
 }
 
-export function createDesign(input: { projectId: string; name?: string; sourceFileIds: string[] }) {
+const today = () => new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+type DesignResult = { ok: true; design: Design } | { ok: false; error: string };
+
+/** Same name in the same project saves a new version instead of a duplicate. */
+export function createDesign(input: { projectId: string; name?: string; sourceFileIds: string[] }): DesignResult {
+  const name = input.name?.trim() || "Imported Connect design";
+  const index = state.designs.findIndex((d) => d.projectId === input.projectId && d.name.trim().toLowerCase() === name.toLowerCase());
+  if (index >= 0) {
+    const existing = state.designs[index];
+    if (existing.checkedOutBy && existing.checkedOutBy !== currentUser.id) {
+      return { ok: false, error: `${userName(existing.checkedOutBy)} is updating "${existing.name}". Try again after they upload.` };
+    }
+    setState("designs", index, {
+      sourceFileIds: input.sourceFileIds,
+      version: (existing.version ?? 1) + 1,
+      updatedBy: currentUser.id,
+      updatedAt: today(),
+      changeNote: "Re-created from the design wizard",
+      checkedOutBy: undefined,
+    });
+    persist();
+    return { ok: true, design: state.designs[index] };
+  }
   const design: Design = {
     id: `design-${Date.now()}`,
     projectId: input.projectId,
-    name: input.name?.trim() || "Imported Connect design",
+    name,
     sourceFileIds: input.sourceFileIds,
     status: "Ready",
-    createdAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    createdAt: today(),
+    version: 1,
+    createdBy: currentUser.id,
   };
   setState("designs", (designs) => [...designs, design]);
   persist();
-  return design;
+  return { ok: true, design };
 }
+
+function findDesign(id: string) {
+  const index = state.designs.findIndex((d) => d.id === id);
+  return { index, design: state.designs[index] as Design | undefined };
+}
+
+/** Locks the design for the current user so nobody else uploads a competing version. */
+export function pullDesign(id: string): DesignResult {
+  const { index, design } = findDesign(id);
+  if (!design) return { ok: false, error: "Design not found." };
+  if (design.checkedOutBy && design.checkedOutBy !== currentUser.id) {
+    return { ok: false, error: `${userName(design.checkedOutBy)} already pulled this design.` };
+  }
+  setState("designs", index, "checkedOutBy", currentUser.id);
+  persist();
+  return { ok: true, design: state.designs[index] };
+}
+
+export function cancelDesignPull(id: string) {
+  const { index, design } = findDesign(id);
+  if (!design || design.checkedOutBy !== currentUser.id) return;
+  setState("designs", index, "checkedOutBy", undefined);
+  persist();
+}
+
+export function uploadDesignVersion(id: string, note: string): DesignResult {
+  const { index, design } = findDesign(id);
+  if (!design) return { ok: false, error: "Design not found." };
+  if (design.checkedOutBy !== currentUser.id) return { ok: false, error: "Pull the design before uploading a new version." };
+  setState("designs", index, {
+    version: (design.version ?? 1) + 1,
+    updatedBy: currentUser.id,
+    updatedAt: today(),
+    changeNote: note.trim() || undefined,
+    checkedOutBy: undefined,
+  });
+  persist();
+  return { ok: true, design: state.designs[index] };
+}
+
+// Keeps a second tab (the other admin) in sync without a reload.
+window.addEventListener("storage", (event) => {
+  if (event.key !== STORAGE_KEY || !event.newValue) return;
+  try {
+    const designs = (JSON.parse(event.newValue) as Persisted).designs;
+    if (Array.isArray(designs)) setState("designs", designs);
+  } catch {
+    // ignore malformed writes
+  }
+});
 
 if (import.meta.env.DEV) {
   const migratedStarters = withStarterWorkflows([starterWorkflows[0]]);
-  if (migratedStarters.length !== 1 || migratedStarters[0]?.action !== "create_vcl_design") {
+  if (migratedStarters.length !== 2 || migratedStarters[0]?.action !== "worksmanager_design_list" || migratedStarters[1]?.action !== "create_vcl_design") {
     console.error("starter workflow migration self-check failed", migratedStarters);
   }
   if (state.projects.length < 10 || state.projects.some((project) => !getDesigns(project.id).length || !getDevices(project.id).length)) {

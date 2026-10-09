@@ -40,6 +40,7 @@ export function PublishConnectToWmCard(props: {
   const [deviceIds, setDeviceIds] = createSignal<string[]>([]);
   const [publishing, setPublishing] = createSignal(false);
   const [published, setPublished] = createSignal(false);
+  const [workflowSaved, setWorkflowSaved] = createSignal(false);
   const [savedHint, setSavedHint] = createSignal("");
 
   const designs = () => projects().find((p) => p.id === projectId())?.designs ?? [];
@@ -74,6 +75,7 @@ export function PublishConnectToWmCard(props: {
       action: "publish_connect_to_wm",
       productIds: ["connect", "worksmanager"],
     });
+    setWorkflowSaved(true);
     setSavedHint("Workflow saved.");
   }
 
@@ -208,8 +210,8 @@ export function PublishConnectToWmCard(props: {
         <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
           <Show when={published()}>
             {savedHint() && <span class="text-sm opacity-70">{savedHint()}</span>}
-            <ModusButton variant="outlined" onClick={saveAsWorkflow}>
-              Save workflow
+            <ModusButton variant="outlined" disabled={workflowSaved()} onClick={saveAsWorkflow}>
+              {workflowSaved() ? "Saved" : "Save workflow"}
             </ModusButton>
           </Show>
           <ModusButton disabled={!canPublish()} onClick={publish}>

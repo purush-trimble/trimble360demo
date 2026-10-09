@@ -49,6 +49,14 @@ export interface Design {
   status: string;
   createdAt: string;
   type?: string;
+  /** Missing on seed data means version 1. */
+  version?: number;
+  createdBy?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+  changeNote?: string;
+  /** User id holding the pull lock; only they can upload the next version. */
+  checkedOutBy?: string;
 }
 export interface Device {
   id: string;
@@ -75,6 +83,8 @@ export interface Conversation {
   updatedAt: string;
 }
 
+export type DesignListLayout = "table" | "cards";
+
 /** Agent workflow pinned from chat for quick reuse. */
 export interface SavedWorkflowConfig {
   sourceId?: string;
@@ -83,6 +93,7 @@ export interface SavedWorkflowConfig {
   mediumId?: string;
   device?: string;
   designName?: string;
+  layout?: DesignListLayout;
 }
 
 export interface SavedWorkflow {

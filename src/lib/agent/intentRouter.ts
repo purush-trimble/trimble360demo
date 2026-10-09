@@ -19,8 +19,9 @@ export function resolveIntent(text: string): { assistantText: string; uiAction?:
 
 if (import.meta.env.DEV) {
   const vcl = resolveIntent("create a vcl design");
+  const design = resolveIntent("create a design");
   const designs = resolveIntent("show my designs");
-  if (vcl.uiAction?.type !== "create_vcl_design" || designs.uiAction?.type !== "worksmanager_design_list") {
+  if (vcl.uiAction?.type !== "create_vcl_design" || design.uiAction?.type !== "create_vcl_design" || designs.uiAction?.type !== "worksmanager_design_list") {
     console.error("resolveIntent self-check failed");
   }
 }

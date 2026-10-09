@@ -5,7 +5,6 @@ import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginC
 import { DeviceManagementCard } from "@/components/plugins/DeviceManagementCard";
 import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCard";
 import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
-import { CreateDesignCard } from "./CreateDesignCard";
 import { CreateVclDesignCard } from "./CreateVclDesignCard";
 import { PublishConnectToWmCard } from "./PublishConnectToWmCard";
 import { SaveWorkflowButton } from "./SaveWorkflowButton";
@@ -20,9 +19,11 @@ export function AgentUIRenderer(props: {
 }) {
   switch (props.action.type) {
     case "create_design":
+      {
+      const [config, setConfig] = createSignal(props.action.config);
       return (
         <div class="space-y-2">
-          <CreateDesignCard onCreated={props.onCreated} />
+          <CreateVclDesignCard initialConfig={config()} onConfigChange={(next) => setConfig((current) => ({ ...current, ...next }))} onCreated={props.onCreated} />
           <SaveWorkflowButton
             name="Create design"
             description="Import from Connect and create a WorksManager design"
@@ -30,10 +31,11 @@ export function AgentUIRenderer(props: {
             action="create_design"
             productIds={["worksmanager", "connect"]}
             workflowId={props.action.workflowId}
-            config={props.action.config}
+            config={config()}
           />
         </div>
       );
+      }
     case "create_vcl_design":
       {
       const [config, setConfig] = createSignal(props.action.config);
@@ -66,20 +68,32 @@ export function AgentUIRenderer(props: {
         </div>
       );
     case "worksmanager_design_list":
+      {
+      const [config, setConfig] = createSignal({
+        ...props.action.config,
+        projectId: props.action.projectId ?? props.action.config?.projectId,
+        layout: props.action.config?.layout === "cards" ? "cards" as const : "table" as const,
+      });
       return (
         <div class="space-y-2">
-          <WorksManagerPluginCard projectId={props.action.projectId} projectName={props.action.projectName} />
+          <WorksManagerPluginCard
+            projectId={props.action.projectId}
+            projectName={props.action.projectName}
+            layout={config().layout}
+            onLayoutChange={(layout) => setConfig((current) => ({ ...current, layout }))}
+          />
           <SaveWorkflowButton
-            name="WorksManager designs"
+            name="Project designs"
             description="View designs in a WorksManager project"
             prompt="show my designs"
             action="worksmanager_design_list"
             productIds={["worksmanager"]}
             workflowId={props.action.workflowId}
-            config={{ ...props.action.config, projectId: props.action.projectId ?? props.action.config?.projectId }}
+            config={config()}
           />
         </div>
       );
+      }
     case "device_management":
       return (
         <div class="space-y-2">

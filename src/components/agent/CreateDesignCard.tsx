@@ -12,8 +12,9 @@ export function CreateDesignCard(props: { onCreated: () => void }) {
   async function create() {
     if (!fileIds().length) return;
     setCreating(true);
-    createDesign({ projectId: "proj-north-ridge", name: name(), sourceFileIds: fileIds() });
+    const result = createDesign({ projectId: "proj-north-ridge", name: name(), sourceFileIds: fileIds() });
     setCreating(false);
+    if (!result.ok) return window.alert(result.error);
     props.onCreated();
   }
 

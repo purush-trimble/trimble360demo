@@ -20,7 +20,7 @@ export const demoUsers: DemoUser[] = [
     initials: "SA",
     email: "siteadmin@trimble.com",
     password: "demo",
-    prompts: ["Show my devices", "Show my designs", "Create a VCL design"],
+    prompts: ["Show my devices", "Show my designs", "Change to a card layout"],
   },
   {
     id: "office-admin",
@@ -29,7 +29,7 @@ export const demoUsers: DemoUser[] = [
     initials: "OA",
     email: "officeadmin@trimble.com",
     password: "demo",
-    prompts: ["Show my Connect files", "Create a design", "Publish a Connect design to WorksManager"],
+    prompts: ["Create a design", "Show my designs", "Publish a Connect design to WorksManager"],
   },
 ];
 
@@ -37,6 +37,10 @@ const [activeUserId, setActiveUserId] = createSignal(demoUsers[0].id);
 
 export function setActiveUser(id: string) {
   if (demoUsers.some((user) => user.id === id)) setActiveUserId(id);
+}
+
+export function userName(id?: string) {
+  return demoUsers.find((user) => user.id === id)?.name ?? "Another user";
 }
 
 export const currentUser = {

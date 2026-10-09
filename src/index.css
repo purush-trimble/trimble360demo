@@ -130,16 +130,13 @@ select {
   flex: 0 0 19rem;
   min-width: 0;
   overflow: hidden;
+  border-right: 1px solid color-mix(in srgb, var(--modus-wc-color-base-content) 18%, var(--modus-wc-color-base-200));
   transition: width 180ms ease;
 }
 
 .byop-chat-sidebar.is-collapsed {
   width: 4.25rem;
   flex-basis: 4.25rem;
-}
-
-.byop-chat-sidebar.is-collapsed .byop-sidebar {
-  border-right: 1px solid var(--modus-wc-color-base-200);
 }
 
 .byop-sidebar-actions {
@@ -2016,6 +2013,78 @@ select {
   white-space: nowrap;
 }
 
+.byop-vcl-switch {
+  position: relative;
+  width: 2.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  appearance: none;
+  border-radius: 999px;
+  background: var(--modus-wc-color-base-300);
+  cursor: pointer;
+}
+
+.byop-vcl-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 120ms ease;
+}
+
+.byop-vcl-switch:checked {
+  background: var(--modus-wc-color-primary);
+}
+
+.byop-vcl-switch:checked::after {
+  transform: translateX(1rem);
+}
+
+.byop-vcl-device-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 8%, transparent);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.byop-vcl-device-note > span {
+  display: grid;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.byop-vcl-device-table th {
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 14%, #fff);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+.byop-vcl-device-table td {
+  border-top: 1px solid var(--modus-wc-color-base-200);
+  padding: 0.85rem 1rem;
+}
+
+.byop-vcl-device-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--modus-wc-color-primary);
+  font-weight: 600;
+}
+
 .byop-vcl-wizard-review {
   border-top: 1px solid var(--modus-wc-color-base-200);
   padding-top: 1rem;
@@ -2067,6 +2136,19 @@ select {
 
 @keyframes byop-vcl-spin {
   to { transform: rotate(360deg); }
+}
+
+.byop-design-cards {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.byop-design-card {
+  border: 1px solid var(--modus-wc-color-base-200);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  background: var(--modus-wc-color-base-100);
 }
 
 /* Surface hierarchy: keep the app chrome distinct from the working canvas. */

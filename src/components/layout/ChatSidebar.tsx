@@ -159,7 +159,7 @@ export function ChatSidebar(props: {
 
   return (
 
-    <aside class="byop-sidebar flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden border-r border-[var(--modus-wc-color-base-200)] bg-[var(--modus-wc-color-base-100)]">
+    <aside class="byop-sidebar flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-[var(--modus-wc-color-base-100)]">
 
       <Show
 

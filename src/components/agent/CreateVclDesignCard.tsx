@@ -1,28 +1,47 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { ModusButton } from "@/components/modus/ModusButton";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
-import { createDesign, getProjects } from "@/lib/mockStore";
+import { createDesign, getProjects, state } from "@/lib/mockStore";
 import type { ConnectFile, WorksManagerProject } from "@/lib/types";
 import type { SavedWorkflowConfig } from "@/lib/types";
 
 type MediumId = "machine-control" | "sitework";
 
-const MEDIUMS: { id: MediumId; name: string; description: string; device: string; deviceDescription: string }[] = [
+type VclDevice = { name: string; type: string; serial: string; description: string };
+
+const MACHINE_DEVICES: VclDevice[] = [
+  { name: "EARTHWORKS3", type: "EC520", serial: "EARTHWORKS3", description: "pwd - admin" },
+  { name: "ECTEST3", type: "EC520", serial: "ECTEST3", description: "pwd- ECTEST3" },
+];
+
+const COLLECTOR_DEVICES: VclDevice[] = [
+  { name: "dc1", type: "Tablet", serial: "DC1", description: "pwd - admin" },
+  { name: "tablet120", type: "Tablet", serial: "TABLET120", description: "pwd-admin" },
+];
+
+const MEDIUMS: { id: MediumId; name: string; description: string; devices: VclDevice[] }[] = [
   {
     id: "machine-control",
     name: "Machine Control",
     description: "Grade control for GPS dozers and excavators.",
-    device: "EC520",
-    deviceDescription: "Machine control display",
+    devices: MACHINE_DEVICES,
   },
   {
     id: "sitework",
-    name: "Sitework",
-    description: "Field layout and site measurement.",
-    device: "Tablet",
-    deviceDescription: "Field tablet",
+    name: "Data Collector",
+    description: "Site collector tablets for field layout and measurement.",
+    devices: COLLECTOR_DEVICES,
   },
 ];
+
+function DeviceMark() {
+  return (
+    <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <rect x="6" y="3" width="12" height="18" rx="1.5" />
+      <path d="M10 18h4" />
+    </svg>
+  );
+}
 
 export function CreateVclDesignCard(props: { onCreated: () => void; initialConfig?: SavedWorkflowConfig; onConfigChange?: (config: SavedWorkflowConfig) => void }) {
   const [step, setStep] = createSignal(props.initialConfig?.sourceId && props.initialConfig.projectId && props.initialConfig.mediumId ? 4 : 1);
@@ -35,19 +54,30 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
   const [projects] = createSignal<WorksManagerProject[]>(getProjects("wm-demo"));
   const [projectId, setProjectId] = createSignal(props.initialConfig?.projectId ?? "");
   const [mediumId, setMediumId] = createSignal<MediumId | "">((props.initialConfig?.mediumId as MediumId) ?? "");
-  const [device, setDevice] = createSignal(props.initialConfig?.device ?? "");
+  const [selectedNames, setSelectedNames] = createSignal<string[]>(props.initialConfig?.device?.split(", ").filter(Boolean) ?? []);
+  const [publishAll, setPublishAll] = createSignal(false);
   const [designName, setDesignName] = createSignal(props.initialConfig?.designName ?? "");
   const [processing, setProcessing] = createSignal(false);
   const [created, setCreated] = createSignal(false);
+  const [version, setVersion] = createSignal(1);
+  const [error, setError] = createSignal("");
 
   const project = createMemo(() => projects().find((item) => item.id === projectId()));
   const medium = createMemo(() => MEDIUMS.find((item) => item.id === mediumId()));
+  const devices = createMemo(() => medium()?.devices ?? []);
+  const deviceLabel = createMemo(() => selectedNames().join(", "));
+  const existingVersion = createMemo(() => {
+    const name = designName().trim().toLowerCase();
+    const match = state.designs.find((d) => d.projectId === projectId() && d.name.trim().toLowerCase() === name);
+    return match ? match.version ?? 1 : undefined;
+  });
+  const allSelected = createMemo(() => devices().length > 0 && devices().every((item) => selectedNames().includes(item.name)));
   const reportConfig = () => props.onConfigChange?.({
     sourceId: source()?.id ?? props.initialConfig?.sourceId,
     sourceName: source()?.name ?? props.initialConfig?.sourceName,
     projectId: projectId() || undefined,
     mediumId: mediumId() || undefined,
-    device: device() || undefined,
+    device: deviceLabel() || undefined,
     designName: designName() || undefined,
   });
   const steps = ["Source", "Project", "Medium", "Device"];
@@ -57,28 +87,51 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
     const selected = projects().find((item) => item.id === id);
     if (selected) setDesignName(`${selected.name} VCL Design`);
     reportConfig();
-    setStep(3);
   }
 
   function chooseMedium(id: MediumId) {
-    const selected = MEDIUMS.find((item) => item.id === id);
     setMediumId(id);
-    setDevice(selected?.device ?? "");
+    setSelectedNames([]);
+    setPublishAll(false);
     reportConfig();
     setStep(4);
   }
 
-  function chooseDevice() {
-    if (device()) setDesignName(designName() || `${project()?.name ?? "Project"} VCL Design`);
+  function rememberDesignName() {
+    if (!designName()) setDesignName(`${project()?.name ?? "Project"} VCL Design`);
+  }
+
+  function toggleDevice(name: string) {
+    const next = selectedNames().includes(name) ? selectedNames().filter((item) => item !== name) : [...selectedNames(), name];
+    setSelectedNames(next);
+    if (next.length !== devices().length) setPublishAll(false);
+    if (next.length) rememberDesignName();
+    reportConfig();
+  }
+
+  function toggleAllRows(checked: boolean) {
+    setSelectedNames(checked ? devices().map((item) => item.name) : []);
+    if (!checked) setPublishAll(false);
+    if (checked) rememberDesignName();
+    reportConfig();
+  }
+
+  function togglePublishAll(checked: boolean) {
+    setPublishAll(checked);
+    setSelectedNames(checked ? devices().map((item) => item.name) : []);
+    if (checked) rememberDesignName();
     reportConfig();
   }
 
   function create() {
-    if (!source() || !projectId() || !medium() || !device() || !designName().trim()) return;
+    if (!source() || !projectId() || !medium() || !deviceLabel() || !designName().trim()) return;
     setProcessing(true);
+    setError("");
     window.setTimeout(() => {
-      createDesign({ projectId: projectId(), name: designName(), sourceFileIds: [source()!.id] });
+      const result = createDesign({ projectId: projectId(), name: designName(), sourceFileIds: [source()!.id] });
       setProcessing(false);
+      if (!result.ok) return setError(result.error);
+      setVersion(result.design.version ?? 1);
       setCreated(true);
       reportConfig();
     }, 1500);
@@ -92,8 +145,10 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
           fallback={
             <div class="byop-vcl-wizard-success">
               <div class="byop-vcl-wizard-success-icon" aria-hidden="true">✓</div>
-              <p class="text-lg font-semibold">{designName()} has been created</p>
-              <p class="mt-1 text-sm opacity-70">Your VCL design is ready for {device()}.</p>
+              <p class="text-lg font-semibold">
+                {version() > 1 ? `${designName()} updated to version ${version()}` : `${designName()} has been created`}
+              </p>
+              <p class="mt-1 text-sm opacity-70">Version {version()} is ready for {deviceLabel()}.</p>
               <div class="mt-5">
                 <ModusButton onClick={props.onCreated}>Done</ModusButton>
               </div>
@@ -167,18 +222,26 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
                 <h4 id="vcl-project-heading" class="font-semibold">Which project is this for?</h4>
                 <p class="text-sm opacity-70">Choose the WorksManager project that should receive this design.</p>
               </div>
-              <div class="space-y-2">
+              <label class="mb-1 block text-sm font-medium" for="vcl-project">WorksManager project</label>
+              <select
+                id="vcl-project"
+                class="byop-input w-full"
+                value={projectId()}
+                onChange={(event) => chooseProject(event.currentTarget.value)}
+              >
+                <option value="" disabled>
+                  Choose a WorksManager project
+                </option>
                 <For each={projects()}>
                   {(item) => (
-                    <button type="button" class="byop-choice flex w-full items-center justify-between text-left" onClick={() => chooseProject(item.id)}>
-                      <span>
-                        <strong class="block">{item.name}</strong>
-                        <span class="text-sm opacity-70">WorksManager project</span>
-                      </span>
-                      <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">{item.status}</span>
-                    </button>
+                    <option value={item.id}>
+                      {item.name} ({item.status})
+                    </option>
                   )}
                 </For>
+              </select>
+              <div class="mt-4 flex justify-end">
+                <ModusButton disabled={!projectId()} onClick={() => setStep(3)}>Continue</ModusButton>
               </div>
             </section>
           </Show>
@@ -204,20 +267,66 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
 
           <Show when={step() === 4}>
             <section aria-labelledby="vcl-device-heading">
-              <div class="mb-3">
-                <h4 id="vcl-device-heading" class="font-semibold">Select target device</h4>
-                <p class="text-sm opacity-70">Available for {medium()?.name}.</p>
+              <Show
+                when={mediumId() === "sitework"}
+                fallback={
+                  <div class="mb-3">
+                    <h4 id="vcl-device-heading" class="font-semibold">Select target device</h4>
+                    <p class="text-sm opacity-70">Machine control devices.</p>
+                  </div>
+                }
+              >
+                <h4 id="vcl-device-heading" class="mb-3 font-semibold">Data Collectors</h4>
+                <label class="mb-3 flex items-center gap-3 text-sm">
+                  <input class="byop-vcl-switch" type="checkbox" role="switch" aria-label="Publish to all Devices" checked={publishAll()} onChange={(event) => togglePublishAll(event.currentTarget.checked)} />
+                  Publish to all Devices
+                </label>
+                <p class="byop-vcl-device-note mb-3">
+                  <span aria-hidden="true">i</span>
+                  Only devices compatible with .vcl format are listed below.
+                </p>
+              </Show>
+              <div class="overflow-x-auto rounded-xl border">
+                <table class="byop-vcl-device-table w-full min-w-[640px] text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th class="w-10">
+                        <input type="checkbox" aria-label="Select all devices" checked={allSelected()} onChange={(event) => toggleAllRows(event.currentTarget.checked)} />
+                      </th>
+                      <th>Device Name <span aria-hidden="true">↑</span></th>
+                      <th>Device Type</th>
+                      <th>Serial Number</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <For each={devices()}>
+                      {(item) => (
+                        <tr>
+                          <td>
+                            <input type="checkbox" aria-label={`Select ${item.name}`} checked={selectedNames().includes(item.name)} onChange={() => toggleDevice(item.name)} />
+                          </td>
+                          <td>
+                            <span class="byop-vcl-device-name">
+                              <DeviceMark />
+                              {item.name}
+                            </span>
+                          </td>
+                          <td>{item.type}</td>
+                          <td>{item.serial}</td>
+                          <td class="opacity-70">{item.description}</td>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
               </div>
-              <button type="button" class="byop-choice w-full text-left is-selected" onClick={chooseDevice}>
-                <strong class="block">{medium()?.device}</strong>
-                <span class="mt-1 block text-sm opacity-70">{medium()?.deviceDescription}</span>
-              </button>
               <div class="byop-vcl-wizard-review mt-5">
                 <p class="mb-3 text-xs font-bold uppercase tracking-wider opacity-60">Review and create</p>
                 <div class="byop-vcl-wizard-summary">
                   <span>{source()?.name}</span>
                   <span>{project()?.name}</span>
-                  <span>{medium()?.name} · {device()}</span>
+                  <span>{medium()?.name} · {deviceLabel() || "No device"}</span>
                 </div>
                 <label class="mt-4 block text-sm font-medium" for="vcl-design-name">Design name</label>
                 <input
@@ -228,11 +337,17 @@ export function CreateVclDesignCard(props: { onCreated: () => void; initialConfi
                   disabled={processing()}
                   onInput={(event) => {
                     setDesignName(event.currentTarget.value);
-                    props.onConfigChange?.({ ...props.initialConfig, designName: event.currentTarget.value });
+                    reportConfig();
                   }}
                 />
+                <Show when={existingVersion()}>
+                  <p class="mt-2 text-xs opacity-70">A design with this name exists (v{existingVersion()}). Creating saves it as v{existingVersion()! + 1}.</p>
+                </Show>
+                <Show when={error()}>
+                  <p class="mt-2 text-sm text-[var(--modus-wc-color-danger)]" role="alert">{error()}</p>
+                </Show>
                 <div class="mt-4 flex justify-end">
-                  <ModusButton disabled={processing() || !designName().trim()} onClick={create}>
+                  <ModusButton disabled={processing() || !designName().trim() || !deviceLabel()} onClick={create}>
                     {processing() ? <><span class="byop-vcl-wizard-spinner" aria-hidden="true" /> Creating design...</> : "Create design"}
                   </ModusButton>
                 </div>
