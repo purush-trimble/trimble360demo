@@ -99,7 +99,7 @@ export function ChatWindow(props: {
             AI guided
           </span>
         </div>
-        <p class="text-sm opacity-70">Ask for files, designs, estimates, or bids across your connected products.</p>
+        <p class="text-sm opacity-70">{currentUser.summary}</p>
       </div>
       <div ref={feed} class="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
         {!messageIds().length && (

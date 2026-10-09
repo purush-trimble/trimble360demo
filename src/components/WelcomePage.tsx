@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 import { ModusButton } from "@/components/modus/ModusButton";
+import { currentUser } from "@/lib/currentUser";
 import {
   availableWelcomeWorkflows,
   productLabelsForWelcome,
@@ -19,7 +20,7 @@ export function WelcomePage(props: {
           <p class="text-xs font-bold uppercase tracking-wider text-[var(--modus-wc-color-primary)]">Trimble 360</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight">What would you like to get done?</h1>
           <p class="mt-3 text-base opacity-70">
-            Start with a ready-made workflow, or open chat and decide as you go.
+            Signed in as {currentUser.name}. {currentUser.summary} Start with a ready-made workflow, or open chat and decide as you go.
           </p>
         </header>
 

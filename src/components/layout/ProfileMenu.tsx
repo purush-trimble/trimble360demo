@@ -29,6 +29,8 @@ export function ProfileMenu() {
       </button>
       <Show when={open()}>
         <div class="byop-profile-dropdown byop-dropdown-enter" role="menu">
+          <p class="byop-profile-dropdown-title">{currentUser.name}</p>
+          <p class="px-1 pb-2 text-xs opacity-70">{currentUser.summary}</p>
           <p class="byop-profile-dropdown-title">Settings</p>
           <div class="byop-profile-dropdown-row">
             <span>Theme</span>

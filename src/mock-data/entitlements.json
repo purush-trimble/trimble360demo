@@ -1,57 +1,57 @@
 [
   {
-    "userId": "demo1",
+    "userId": "site-admin",
     "pluginId": "connect",
     "subscriptionAccountId": "connect-demo",
     "plan": "Connect Pro",
     "active": true
   },
   {
-    "userId": "demo1",
+    "userId": "site-admin",
     "pluginId": "worksmanager",
     "subscriptionAccountId": "wm-demo",
     "plan": "Pro",
     "active": true
   },
   {
-    "userId": "demo1",
+    "userId": "site-admin",
     "pluginId": "b2westimate",
     "subscriptionAccountId": "b2w-demo",
     "plan": "B2W Estimate Professional",
     "active": false
   },
   {
-    "userId": "demo1",
+    "userId": "site-admin",
     "pluginId": "autobid",
     "subscriptionAccountId": "autobid-demo",
     "plan": "AutoBid Enterprise",
     "active": false
   },
   {
-    "userId": "demo2",
+    "userId": "office-admin",
     "pluginId": "connect",
-    "subscriptionAccountId": "connect-demo2",
+    "subscriptionAccountId": "connect-office",
     "plan": "Connect Pro",
-    "active": false
+    "active": true
   },
   {
-    "userId": "demo2",
+    "userId": "office-admin",
     "pluginId": "worksmanager",
-    "subscriptionAccountId": "wm-demo2",
+    "subscriptionAccountId": "wm-office",
     "plan": "Pro",
     "active": true
   },
   {
-    "userId": "demo2",
+    "userId": "office-admin",
     "pluginId": "b2westimate",
-    "subscriptionAccountId": "b2w-demo2",
+    "subscriptionAccountId": "b2w-office",
     "plan": "B2W Estimate Professional",
     "active": false
   },
   {
-    "userId": "demo2",
+    "userId": "office-admin",
     "pluginId": "autobid",
-    "subscriptionAccountId": "autobid-demo2",
+    "subscriptionAccountId": "autobid-office",
     "plan": "AutoBid Enterprise",
     "active": false
   }

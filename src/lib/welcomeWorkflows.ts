@@ -1,5 +1,5 @@
 import type { PluginId } from "@/lib/types";
-import { currentUser } from "@/lib/currentUser";
+import { currentUser, demoUsers } from "@/lib/currentUser";
 import { userFacingProducts } from "@/lib/pluginCatalog";
 
 export type WelcomeWorkflow = {
@@ -47,7 +47,7 @@ export function markWelcomed(userId = currentUser.id) {
 
 export function clearWelcomeState() {
   try {
-    for (const user of ["demo1", "demo2"]) localStorage.removeItem(welcomeKey(user));
+    for (const user of demoUsers) localStorage.removeItem(welcomeKey(user.id));
   } catch {
     // Ignore storage failures during demo reset.
   }

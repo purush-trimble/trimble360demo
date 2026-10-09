@@ -8,7 +8,8 @@ import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { isAuthenticated } from "@/lib/auth";
 import { saveWorkflow } from "@/lib/mockStore";
 import { markWelcomed, hasSeenWelcome, type WelcomeWorkflow } from "@/lib/welcomeWorkflows";
-import { promptsFor, selectionFromWidget, widgetById } from "@/lib/workProfileCatalog";
+import { currentUser } from "@/lib/currentUser";
+import { selectionFromWidget, widgetById } from "@/lib/workProfileCatalog";
 
 type AppView = "workspace" | "welcome";
 
@@ -25,7 +26,7 @@ function Workspace() {
   const [view, setView] = createSignal<AppView>(hasSeenWelcome() ? "workspace" : "welcome");
   const [tab, setTab] = createSignal<"chats" | "dashboard">(hasSeenWelcome() ? "chats" : "dashboard");
 
-  const suggestedPrompts = createMemo(() => promptsFor([]));
+  const suggestedPrompts = createMemo(() => currentUser.prompts);
 
   function continueToChat() {
     markWelcomed();

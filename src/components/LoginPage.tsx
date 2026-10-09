@@ -115,13 +115,13 @@ export function LoginPage() {
                     full-width={true}
                     on:buttonClick={() => fillDemoAccount(user)}
                   >
-                    Fill {user.id}
+                    {user.name}
                   </modus-wc-button>
                 ))}
               </div>
             </form>
             <p slot="footer" class="text-sm text-slate-500">
-              Demo logins: {demoUsers.map((user) => `${user.email} / ${user.password}`).join(" · ")}
+              {demoUsers.map((user) => `${user.name}: ${user.email} / ${user.password}`).join(" · ")}
             </p>
           </modus-wc-card>
         </div>

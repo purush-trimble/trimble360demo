@@ -8,6 +8,7 @@ import b2wEstimatesSeed from "@/mock-data/b2w-estimates.json";
 import autobidsSeed from "@/mock-data/autobids.json";
 import devicesSeed from "@/mock-data/devices.json";
 import { resolveIntent } from "@/lib/agent/intentRouter";
+import { demoUsers } from "@/lib/currentUser";
 import { dashboardPanelsForFeatures } from "@/lib/workProfileCatalog";
 import type { ChatMessage } from "@/lib/agent/types";
 import { normalizeWorksManagerPlan } from "@/lib/pluginCatalog";
@@ -354,8 +355,7 @@ export { state };
 export function resetDemoStorage() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem("trimble360-demo-v1");
-  localStorage.removeItem("trimble360-welcomed-demo1");
-  localStorage.removeItem("trimble360-welcomed-demo2");
+  for (const user of demoUsers) localStorage.removeItem(`trimble360-welcomed-${user.id}`);
   const messages = chatMessagesSeed as ChatMessage[];
   const { conversations, activeId } = buildInitialConversation(messages);
   setState({
