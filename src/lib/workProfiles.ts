@@ -145,6 +145,7 @@ export function updateWorkProfile(id: string, input: Omit<WorkProfile, "id" | "u
     solutionIds: input.solutionIds,
     featureIds: features,
     productIds: productsUsedBy(features),
+    widgetId: input.widgetId,
   };
   setWorkProfileState("profiles", index, updated);
   if (workProfileState.activeId === id) {

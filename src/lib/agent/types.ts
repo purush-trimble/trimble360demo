@@ -1,7 +1,9 @@
 import type { PluginId, Entitlement } from "@/lib/types";
+import type { SavedWorkflowConfig } from "@/lib/types";
 
 export type AgentUIAction =
-  | { type: "create_design"; accountId: string; suggestedName?: string }
+  | { type: "create_design"; accountId: string; suggestedName?: string; workflowId?: string; config?: SavedWorkflowConfig }
+  | { type: "create_vcl_design"; workflowId?: string; config?: SavedWorkflowConfig }
   | { type: "connect_file_browser"; accountId: string }
   | { type: "worksmanager_design_list"; accountId: string }
   | { type: "b2westimate_list"; accountId: string }

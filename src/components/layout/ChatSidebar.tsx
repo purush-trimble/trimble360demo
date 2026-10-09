@@ -4,11 +4,11 @@ import {
 
   createConversation,
 
-  createDashboard,
+  deleteSavedWorkflow,
+  openSavedWorkflowInChat,
 
-  deleteDashboard,
+  
 
-  renameDashboard,
 
   deleteConversation,
 
@@ -20,7 +20,7 @@ import {
 
   selectConversation,
 
-  selectDashboard,
+  selectSavedWorkflow,
 
   state,
 
@@ -67,22 +67,6 @@ function IconDelete() {
 }
 
 
-
-function IconPlugins() {
-
-  return (
-
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-
-      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-
-      <circle cx="12" cy="12" r="3.2" />
-
-    </svg>
-
-  );
-
-}
 
 function IconNewChat() {
   return (
@@ -131,10 +115,6 @@ export function ChatSidebar(props: {
 
   connectedProducts: PluginId[];
 
-  showPluginsNav: boolean;
-
-  onOpenPlugins: () => void;
-
   activeTab: "chats" | "dashboard";
 
   onTabChange: (tab: "chats" | "dashboard") => void;
@@ -146,7 +126,7 @@ export function ChatSidebar(props: {
   const activeTab = () => props.activeTab;
   const setActiveTab = props.onTabChange;
   const dashboards = () =>
-    state.dashboards.filter((d) => d.name.toLowerCase().includes(dashboardQuery().trim().toLowerCase()));
+    state.savedWorkflows.filter((workflow) => workflow.name.toLowerCase().includes(dashboardQuery().trim().toLowerCase()));
 
   const [editingId, setEditingId] = createSignal<string | null>(null);
 
@@ -178,12 +158,6 @@ export function ChatSidebar(props: {
 
   }
 
-  function commitDashboardRename(id: string) {
-    if (editingId() !== id) return;
-    renameDashboard(id, editTitle());
-    setEditingId(null);
-  }
-
 
 
   return (
@@ -202,7 +176,7 @@ export function ChatSidebar(props: {
               <IconExpandSidebar />
             </button>
 
-            <button type="button" class="byop-collapsed-action" aria-label="New chat" title="New chat" onClick={() => createConversation()}>
+            <button type="button" class="byop-collapsed-action" aria-label="New chat" title="New chat" onClick={() => { createConversation(); setActiveTab("chats"); }}>
               <IconNewChat />
             </button>
 
@@ -212,7 +186,7 @@ export function ChatSidebar(props: {
 
             <div class="flex-1" />
 
-            <span class="byop-collapsed-mark" aria-hidden="true">BY</span>
+            <img class="byop-collapsed-mark" src="/logo360.svg" alt="Trimble 360" />
 
           </div>
 
@@ -238,7 +212,7 @@ export function ChatSidebar(props: {
               classList={{ "is-active": activeTab() === "dashboard" }}
               onClick={() => setActiveTab("dashboard")}
             >
-              Job view
+              Saved workflows
             </button>
           </div>
           <div class="byop-sidebar-top-actions">
@@ -293,58 +267,40 @@ export function ChatSidebar(props: {
             fallback={
               <section class="byop-sidebar-section byop-sidebar-section--dashboard flex min-h-0 flex-1 flex-col" aria-labelledby="sidebar-dashboards-heading">
                 <div class="byop-sidebar-section-head">
-                  <h2 id="sidebar-dashboards-heading" class="byop-sidebar-section-title">Dashboards</h2>
+                  <h2 id="sidebar-dashboards-heading" class="byop-sidebar-section-title">Saved widgets</h2>
                   <div class="byop-sidebar-section-actions">
-                    <span class="byop-sidebar-badge" aria-label={`${dashboards().length} dashboards`}>
+                    <span class="byop-sidebar-badge" aria-label={`${dashboards().length} saved widgets`}>
                       {dashboards().length}
                     </span>
-                    <button type="button" class="byop-new-chat-icon" aria-label="New dashboard" title="New dashboard" onClick={() => createDashboard()}>
+                    <button type="button" class="byop-new-chat-icon" aria-label="New chat" title="New chat" onClick={() => { createConversation(); setActiveTab("chats"); }}>
                       <IconNewChat />
                     </button>
                   </div>
                 </div>
                 <div class="byop-sidebar-list min-h-0 flex-1 overflow-y-auto">
-                  <For each={dashboards()} fallback={<p class="byop-sidebar-empty-hint px-1">No dashboards match your search.</p>}>
+                  <For each={dashboards()} fallback={<p class="byop-sidebar-empty-hint px-1">No saved widgets match your search.</p>}>
                     {(d) => (
-                      <div class={`byop-conversation group mb-1 rounded-lg px-2.5 py-2 ${state.activeDashboardId === d.id ? "is-active" : ""}`}>
+                      <div class={`byop-conversation group mb-1 rounded-lg px-2.5 py-2 ${state.activeSavedWorkflowId === d.id ? "is-active" : ""}`}>
                         <div class="flex items-start gap-1">
-                          <Show
-                            when={editingId() === d.id}
-                            fallback={
-                              <button type="button" class="min-w-0 flex-1 text-left" onClick={() => selectDashboard(d.id)}>
-                                <span class="block truncate text-sm font-medium">{d.name}</span>
-                                <span class="text-xs opacity-60">{d.panels.length} panel(s)</span>
-                              </button>
-                            }
-                          >
-                            <input
-                              class="byop-input w-full flex-1 text-sm"
-                              aria-label="Dashboard name"
-                              value={editTitle()}
-                              onInput={(e) => setEditTitle(e.currentTarget.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") commitDashboardRename(d.id);
-                                if (e.key === "Escape") setEditingId(null);
-                              }}
-                              onBlur={() => commitDashboardRename(d.id)}
-                              autofocus
-                            />
-                          </Show>
+                          <button type="button" class="min-w-0 flex-1 text-left" onClick={() => selectSavedWorkflow(d.id)}>
+                            <span class="block truncate text-sm font-medium">{d.name}</span>
+                            <span class="text-xs opacity-60">{d.description}</span>
+                          </button>
                           <div class="byop-conversation-actions">
                             <button
                               type="button"
                               class="byop-icon-button byop-icon-button--sm byop-icon-button--rename byop-tooltip-host"
                               aria-label="Rename dashboard"
-                              onClick={() => startRename(d.id, d.name)}
+                              onClick={() => { selectSavedWorkflow(d.id); openSavedWorkflowInChat(d.id); setActiveTab("chats"); }}
                             >
                               <IconRename />
-                              <span class="byop-tooltip">Rename</span>
+                              <span class="byop-tooltip">Edit in new chat</span>
                             </button>
                             <button
                               type="button"
                               class="byop-icon-button byop-icon-button--sm byop-icon-button--delete byop-tooltip-host"
-                              aria-label="Delete dashboard"
-                              onClick={() => deleteDashboard(d.id)}
+                              aria-label="Delete saved workflow"
+                              onClick={() => deleteSavedWorkflow(d.id)}
                             >
                               <IconDelete />
                               <span class="byop-tooltip">Delete</span>
@@ -496,39 +452,7 @@ export function ChatSidebar(props: {
 
         </div>
 
-        <footer class="byop-sidebar-footer border-t border-[var(--modus-wc-color-base-200)]">
-
-          <Show when={props.showPluginsNav}>
-
-            <button type="button" class="byop-plugin-hub-card" onClick={props.onOpenPlugins}>
-
-              <span class="byop-plugin-hub-icon" aria-hidden="true">
-
-                <IconPlugins />
-
-              </span>
-
-              <span class="min-w-0 flex-1 text-left">
-
-                <strong class="block text-sm">Plugins</strong>
-
-                <span class="block text-xs opacity-65">Connect products with FCHID</span>
-
-              </span>
-
-              <span class="byop-plugin-hub-chevron" aria-hidden="true">›</span>
-
-            </button>
-
-          </Show>
-
-          <Show when={!props.connectedProducts.length && props.showPluginsNav}>
-
-            <p class="mt-3 text-xs opacity-60">No plugins connected yet. Open Plugins to add your FCHID.</p>
-
-          </Show>
-
-        </footer>
+        <footer class="byop-sidebar-footer border-t border-[var(--modus-wc-color-base-200)]" />
 
       </Show>
 

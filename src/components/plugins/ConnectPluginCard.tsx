@@ -3,11 +3,16 @@ import { ModusButton } from "@/components/modus/ModusButton";
 import { getConnectFiles } from "@/lib/mockStore";
 import type { ConnectFile } from "@/lib/types";
 
-export function ConnectPluginCard(props: { onFilesSelected?: (ids: string[]) => void; pickerOnly?: boolean }) {
+export function ConnectPluginCard(props: {
+  onFilesSelected?: (ids: string[], files?: ConnectFile[]) => void;
+  pickerOnly?: boolean;
+  showProductName?: boolean;
+  extensionFilter?: string;
+}) {
   const [files, setFiles] = createSignal<ConnectFile[]>([]);
   const [selected, setSelected] = createSignal<string[]>([]);
 
-  onMount(() => setFiles(getConnectFiles("connect-demo")));
+  onMount(() => setFiles(getConnectFiles("connect-demo").filter((file) => !props.extensionFilter || file.extension === props.extensionFilter)));
 
   const toggle = (id: string) =>
     setSelected((items) => (items.includes(id) ? items.filter((item) => item !== id) : [...items, id]));
@@ -17,7 +22,7 @@ export function ConnectPluginCard(props: { onFilesSelected?: (ids: string[]) => 
       <div class="p-5">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <p class="text-xs uppercase tracking-wider text-slate-500">Trimble Connect</p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">{props.showProductName === false ? "WorksManager" : "Trimble Connect"}</p>
             <h3 class="text-lg font-semibold">Project files</h3>
           </div>
           <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Connected</span>
@@ -35,7 +40,7 @@ export function ConnectPluginCard(props: { onFilesSelected?: (ids: string[]) => 
           ))}
         </div>
         <div class="mt-4 flex justify-end">
-          <ModusButton disabled={!selected().length} onClick={() => props.onFilesSelected?.(selected())}>
+          <ModusButton disabled={!selected().length} onClick={() => props.onFilesSelected?.(selected(), files())}>
             {props.pickerOnly ? "Use selected files" : "Import to WorksManager"}
           </ModusButton>
         </div>

@@ -2,18 +2,23 @@ import { createMemo, createSignal, Show } from "solid-js";
 import { ChatWindow } from "@/components/ChatWindow";
 import { DashboardCanvas } from "@/components/dashboard/DashboardCanvas";
 import { LoginPage } from "@/components/LoginPage";
+import { WelcomePage } from "@/components/WelcomePage";
 import { ChatSidebar } from "@/components/layout/ChatSidebar";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
-import { WorkProfileSetup } from "@/components/WorkProfileSetup";
-import { WorkContextBar } from "@/components/WorkContextBar";
-import { PluginsPage } from "@/components/plugins/PluginsPage";
-import { ModusButton } from "@/components/modus/ModusButton";
-import { isAuthenticated, signOut } from "@/lib/auth";
-import { isPluginConnected, listConnectablePluginIds, state } from "@/lib/mockStore";
-import { promptsFor } from "@/lib/workProfileCatalog";
-import { activeWorkProfile, workspaceSlice } from "@/lib/workProfiles";
+import { isAuthenticated } from "@/lib/auth";
+import {
+  beginPluginConnect,
+  completePluginConnect,
+  isPluginConnected,
+  listConnectablePluginIds,
+  saveWorkflow,
+} from "@/lib/mockStore";
+import { markWelcomed, hasSeenWelcome, type WelcomeWorkflow } from "@/lib/welcomeWorkflows";
+import { promptsFor, selectionFromWidget, widgetById } from "@/lib/workProfileCatalog";
+import { workspaceSlice } from "@/lib/workProfiles";
+import { saveWorkProfile } from "@/lib/workProfiles";
 
-type AppView = "workspace" | "plugins" | "profile-setup";
+type AppView = "workspace" | "welcome";
 
 export default function App() {
   return (
@@ -25,11 +30,10 @@ export default function App() {
 
 function Workspace() {
   const [chatMenuOpen, setChatMenuOpen] = createSignal(true);
-  const [view, setView] = createSignal<AppView>(workspaceSlice() ? "workspace" : "profile-setup");
-  const [tab, setTab] = createSignal<"chats" | "dashboard">("dashboard");
+  const [view, setView] = createSignal<AppView>(hasSeenWelcome() ? "workspace" : "welcome");
+  const [tab, setTab] = createSignal<"chats" | "dashboard">(hasSeenWelcome() ? "chats" : "dashboard");
 
   const slice = createMemo(() => workspaceSlice());
-  const profile = createMemo(() => activeWorkProfile());
 
   const scopedPlugins = createMemo(() => {
     const allowed = slice()?.productIds;
@@ -39,15 +43,42 @@ function Workspace() {
 
   const suggestedPrompts = createMemo(() => promptsFor(slice()?.featureIds ?? []));
 
-  const showPluginsNav = () => state.preferences.pluginsMenuVisible;
-
-  function openProfileSetup() {
-    setView("profile-setup");
+  function continueToChat() {
+    markWelcomed();
+    setTab("chats");
+    setView("workspace");
   }
 
-  function finishProfileSetup() {
-    setView("workspace");
+  function launchWorkflow(workflow: WelcomeWorkflow) {
+    const widget = widgetById(workflow.widgetId);
+    if (!widget) return continueToChat();
+    for (const pluginId of listConnectablePluginIds()) {
+      if (isPluginConnected(pluginId)) continue;
+      const result = beginPluginConnect(pluginId, `FCHID-DEMO-${pluginId.toUpperCase()}-88442211`);
+      if (result.ok) completePluginConnect(pluginId);
+    }
+    const selected = selectionFromWidget("acct-morgan", widget);
+    if (!workspaceSlice()) {
+      saveWorkProfile({
+        name: selected.name,
+        accountId: "acct-morgan",
+        projectId: "proj-north-ridge",
+        solutionIds: selected.solutionIds,
+        featureIds: selected.featureIds,
+        productIds: selected.productIds,
+        widgetId: selected.widgetId,
+      });
+    }
+    markWelcomed();
+    saveWorkflow({
+      name: selected.name,
+      description: widget.valueStory,
+      prompt: selected.featureIds.includes("create_vcl_design") ? "create a VCL design" : "create a design",
+      action: selected.featureIds.includes("create_vcl_design") ? "create_vcl_design" : "create_design",
+      productIds: selected.productIds,
+    });
     setTab("dashboard");
+    setView("workspace");
   }
 
   return (
@@ -65,28 +96,20 @@ function Workspace() {
           </button>
         </Show>
         <div class="byop-brand">
-          <span class="byop-brand-mark">360</span>
+          <img class="byop-brand-mark" src="/logo360.svg" alt="Trimble 360" />
           <span>
             <strong class="block text-sm">Trimble 360</strong>
             <span class="block text-xs opacity-60">Role-ready project handbook</span>
           </span>
         </div>
         <div class="byop-topbar-actions">
-          <Show when={view() === "workspace" && slice()}>
-            <ModusButton variant="outlined" onClick={openProfileSetup}>
-              Work profiles
-            </ModusButton>
-          </Show>
-          <ProfileMenu onOpenPlugins={() => setView("plugins")} />
-          <ModusButton variant="outlined" onClick={signOut}>
-            Sign out
-          </ModusButton>
+          <ProfileMenu />
         </div>
       </header>
-      <Show when={view() === "profile-setup"}>
-        <WorkProfileSetup onDone={finishProfileSetup} onCancel={slice() ? finishProfileSetup : undefined} initialEditId={profile()?.id} />
+      <Show when={view() === "welcome"}>
+        <WelcomePage onLaunch={launchWorkflow} onContinueToChat={continueToChat} />
       </Show>
-      <Show when={view() !== "profile-setup"}>
+      <Show when={view() !== "welcome"}>
         <div class="byop-shell flex h-[calc(100vh-64px)] w-full">
           <Show when={view() === "workspace"}>
             <div class={`byop-chat-sidebar shrink-0 flex ${chatMenuOpen() ? "is-open" : "is-collapsed"}`}>
@@ -94,35 +117,21 @@ function Workspace() {
                 open={chatMenuOpen()}
                 onToggleOpen={() => setChatMenuOpen((open) => !open)}
                 connectedProducts={scopedPlugins()}
-                showPluginsNav={showPluginsNav()}
-                onOpenPlugins={() => setView("plugins")}
                 activeTab={tab()}
                 onTabChange={setTab}
               />
             </div>
           </Show>
-          <Show
-            when={view() === "workspace"}
-            fallback={
-              <div class="flex min-w-0 flex-1">
-                <PluginsPage onBack={() => setView(slice() ? "workspace" : "profile-setup")} />
-              </div>
-            }
-          >
-            <Show when={tab() === "chats"} fallback={<DashboardCanvas allowedFeatureIds={slice()?.featureIds} workProfileName={profile()?.name} />}>
-              <main class="byop-view-enter flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:p-7">
-                <div class="byop-main-header shrink-0">
-                  <WorkContextBar profileName={profile()?.name ?? "Work profile"} />
-                </div>
-                <ChatWindow
-                  mountedPlugins={scopedPlugins()}
-                  connectedPlugins={scopedPlugins()}
-                  suggestedPrompts={suggestedPrompts()}
-                  allowedFeatureIds={slice()?.featureIds}
-                  onCreated={() => undefined}
-                />
-              </main>
-            </Show>
+          <Show when={tab() === "chats"} fallback={<DashboardCanvas allowedFeatureIds={slice()?.featureIds} onEdit={() => setTab("chats")} />}>
+            <main class="byop-view-enter flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:p-7">
+              <ChatWindow
+                mountedPlugins={scopedPlugins()}
+                connectedPlugins={scopedPlugins()}
+                suggestedPrompts={suggestedPrompts()}
+                allowedFeatureIds={slice()?.featureIds}
+                onCreated={() => undefined}
+              />
+            </main>
           </Show>
         </div>
       </Show>

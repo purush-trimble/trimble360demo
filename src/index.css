@@ -181,15 +181,10 @@ select {
 }
 
 .byop-collapsed-mark {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  border-radius: 0.6rem;
-  background: var(--modus-wc-color-primary);
-  color: var(--modus-wc-color-primary-content);
-  font-size: 0.7rem;
-  font-weight: 800;
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
 }
 
 .byop-settings {
@@ -233,15 +228,10 @@ select {
 }
 
 .byop-brand-mark {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  border-radius: 0.65rem;
-  background: var(--modus-wc-color-primary);
-  color: var(--modus-wc-color-primary-content);
-  font-size: 0.78rem;
-  font-weight: 800;
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
 }
 
 .byop-shell {
@@ -2020,4 +2010,102 @@ select {
   background: var(--modus-wc-color-primary);
   color: var(--modus-wc-color-primary-content, #fff);
   font-size: 0.75rem;
+}
+
+.byop-vcl-wizard-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+}
+
+.byop-vcl-wizard-progress-step {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--modus-wc-color-base-500);
+  text-align: center;
+}
+
+.byop-vcl-wizard-progress-step > span {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border: 1px solid var(--modus-wc-color-base-300);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.byop-vcl-wizard-progress-step.is-active {
+  color: var(--modus-wc-color-primary);
+}
+
+.byop-vcl-wizard-progress-step.is-active > span {
+  border-color: var(--modus-wc-color-primary);
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 12%, transparent);
+}
+
+.byop-vcl-wizard-progress-step small {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.byop-vcl-wizard-review {
+  border-top: 1px solid var(--modus-wc-color-base-200);
+  padding-top: 1rem;
+}
+
+.byop-vcl-wizard-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.byop-vcl-wizard-summary span {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--modus-wc-color-primary) 8%, var(--modus-wc-color-base-page));
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.byop-vcl-wizard-spinner {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-right: 0.4rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: byop-vcl-spin 700ms linear infinite;
+  vertical-align: -0.1rem;
+}
+
+.byop-vcl-wizard-success {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.byop-vcl-wizard-success-icon {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: 0 auto 1rem;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--modus-wc-color-success, #16834b) 15%, transparent);
+  color: var(--modus-wc-color-success, #16834b);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+@keyframes byop-vcl-spin {
+  to { transform: rotate(360deg); }
 }

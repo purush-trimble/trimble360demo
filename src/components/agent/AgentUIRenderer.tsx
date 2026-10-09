@@ -1,9 +1,11 @@
 import type { AgentUIAction } from "@/lib/agent/types";
+import { createSignal } from "solid-js";
 import { ConnectPluginCard } from "@/components/plugins/ConnectPluginCard";
 import { WorksManagerPluginCard } from "@/components/plugins/WorksManagerPluginCard";
 import { B2wEstimatePluginCard } from "@/components/plugins/B2wEstimatePluginCard";
 import { AutoBidPluginCard } from "@/components/plugins/AutoBidPluginCard";
 import { CreateDesignCard } from "./CreateDesignCard";
+import { CreateVclDesignCard } from "./CreateVclDesignCard";
 import { EntitlementUpsellCard } from "./EntitlementUpsellCard";
 import { PublishConnectToWmCard } from "./PublishConnectToWmCard";
 import { SaveWorkflowButton } from "./SaveWorkflowButton";
@@ -25,9 +27,29 @@ export function AgentUIRenderer(props: {
             prompt="create a design"
             action="create_design"
             productIds={["worksmanager", "connect"]}
+            workflowId={props.action.workflowId}
+            config={props.action.config}
           />
         </div>
       );
+    case "create_vcl_design":
+      {
+      const [config, setConfig] = createSignal(props.action.config);
+      return (
+        <div class="space-y-2">
+          <CreateVclDesignCard initialConfig={config()} onConfigChange={(next) => setConfig((current) => ({ ...current, ...next }))} onCreated={props.onCreated} />
+          <SaveWorkflowButton
+            name="Create a VCL design"
+            description="Import a VCL file and target it to the right project and field device"
+            prompt="create a VCL design"
+            action="create_vcl_design"
+            productIds={["connect", "worksmanager"]}
+            workflowId={props.action.workflowId}
+            config={config()}
+          />
+        </div>
+      );
+      }
     case "connect_file_browser":
       return (
         <div class="space-y-2">

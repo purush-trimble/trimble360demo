@@ -27,9 +27,15 @@ export const INTENTS: Intent[] = [
     respond: () => ({ type: "publish_connect_to_wm" }),
   },
   {
+    featureId: "create_vcl_design",
+    requiresPlugins: ["connect", "worksmanager"],
+    matches: (text) => /\b(create|new|make)\b.*\bvcl\b.*\bdesign\b|\bvcl\b.*\bdesign\b.*\b(create|new|make)\b/i.test(text),
+    respond: () => ({ type: "create_vcl_design" }),
+  },
+  {
     featureId: "create_design",
     requiresPlugins: ["worksmanager"],
-    matches: (text) => /\b(create|new|make)\b.*\bdesign\b/i.test(text),
+    matches: (text) => /\b(create|new|make)\b.*\bdesign\b/i.test(text) && !/\bvcl\b/i.test(text),
     respond: () => ({ type: "create_design", accountId: "wm-demo", suggestedName: "North Ridge imported design" }),
   },
   {
